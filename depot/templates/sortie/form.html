@@ -1,0 +1,362 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% load static %}
+
+<div class="page-title">
+    <div class="title_left">
+        <h3>Gestion des Sorties de Stock</h3>
+    </div>
+
+    <div class="title_right">
+        <div class="col-md-5 col-sm-5  form-group pull-right top_search">
+
+        {% for message in messages %}
+            {% if 'custom-warning' in message.tags %}
+                <div class="alert alert-warning" role="alert">
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+            {% else %}
+                <!-- Handle other types of messages as needed -->
+                <div class="alert alert-info" role="alert">
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            {% endif %}
+
+        {% endfor %}
+
+
+        </div>
+    </div>
+</div>
+<div class="clearfix"></div>
+<div class="row">
+<form class="form-horizontal form-label-left" method="POST" autocomplete="off" id="sortieForm"  data-qte-url="{% url 'ajax_load_qte' %}">
+            {% csrf_token %}
+    <div class="x_panel">
+        <div class="x_content">
+            <div class="container">
+                <div class="row">
+                    <div class='col-sm-3'>
+                        Numéro Facture
+                        <div class="form-group">
+                            <div class='input-group'>
+                                <input type='text' required="true" readonly="true" id="code_facture" name="code_facture" value="{{ code_facture }}" class="form-control" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class='col-sm-2'>
+                        Date Facture
+                        <div class="form-group">
+                            <div class='input-group'>
+                                <input type="date" name="date_facture" class="form-control" required="True" id="id_date_facture">
+                            </div>
+                        </div>
+                    </div>
+                     <div class='col-sm-3'>
+                        Client
+                        <div class="form-group">
+                            <div class='input-group'>
+                                {{ form1.client }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class='col-sm-2'>
+                        Type Client
+                        <div class="form-group">
+                            <div class='input-group'>
+                                {{ form1.type_client }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class='col-sm-1'>
+                        TVA
+                        <div class="form-group">
+                            <div class='input-group'>
+                                {{ form1.tva }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class='col-sm-1'>
+                        Remise
+                        <div class="form-group">
+                            <div class='input-group'>
+                                {{ form1.remise }}
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+  <!-- form input mask -->
+  <div class="col-md-4 col-sm-12  ">
+    <div class="x_panel">
+      <div class="x_title">
+        <h2>Formulaire Sortie de Produit - Stock</h2>
+        <ul class="nav navbar-right panel_toolbox">
+          <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+          </li>
+          <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="fa fa-wrench"></i></a>
+            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="dropdown-item" href="#">Settings 1</a>
+                <a class="dropdown-item" href="#">Settings 2</a>
+              </div>
+          </li>
+          <li><a class="close-link"><i class="fa fa-close"></i></a>
+          </li>
+        </ul>
+        <div class="clearfix"></div>
+      </div>
+      <div class="x_content">
+        <br />
+
+          <div class="form-group row">
+            <label class="control-label col-md-3 col-sm-3 col-xs-3">Produit</label>
+            <div class="col-md-9 col-sm-9 col-xs-9">
+                {{ form.produit }}
+            </div>
+          </div>
+          <div class="form-group row">
+            <label class="control-label col-md-3 col-sm-3 col-xs-3">Qte Disponible</label>
+            <div class="col-md-9 col-sm-9 col-xs-9">
+                <span class="form-control"  id="qteDispo">{{qte_dis}}</span>
+            </div>
+          </div>
+          <div class="form-group row">
+            <label class="control-label col-md-3 col-sm-3 col-xs-3">Prix de Vente</label>
+            <div class="col-md-9 col-sm-9 col-xs-9">
+                <span class="form-control"  id="prixAdder">{{prix_dis}}</span>
+            </div>
+          </div>
+          <div class="form-group row">
+            <label class="control-label col-md-3 col-sm-3 col-xs-3">Quantité</label>
+            <div class="col-md-9 col-sm-9 col-xs-9">
+              {{ form.qte }}
+            </div>
+          </div>
+          <div class="ln_solid"></div>
+
+          <div class="form-group row">
+            <div class="col-md-9 offset-md-3">
+              <button type="button" id="btn_cancel" class="btn btn-primary">Annuler</button>
+              <button type="button" id="btn_adder" class="btn btn-success">Ajouter</button>
+            </div>
+          </div>
+
+
+      </div>
+    </div>
+  </div>
+  <!-- /form input mask -->
+
+  <!-- form color picker -->
+  <div class="col-md-8 col-sm-12  ">
+    <div class="x_panel" style="max-height: 850px">
+      <div class="x_title">
+        <h2>Création de Facture</h2>
+
+        <ul class="nav navbar-right panel_toolbox">
+          <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+          </li>
+          <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="fa fa-wrench"></i></a>
+            <ul class="dropdown-menu" role="menu">
+              <li><a href="#">Settings 1</a>
+              </li>
+              <li><a href="#">Settings 2</a>
+              </li>
+            </ul>
+          </li>
+          <li><a class="close-link"><i class="fa fa-close"></i></a>
+          </li>
+        </ul>
+
+           <div class="text-right mt-8" style="margin-right: 15px">
+               <input type="hidden" name="mt_ht" id="mt_ht">
+               <span style="color:#f10505;font-size:bold;" id="value"></span>
+                <a href="{% url 'sortie' %}" class="btn btn-info btn-sm"><i class="fa fa-arrow-circle-left"></i> Retour Liste </a>
+                <button type="submit" class="btn btn-success btn-sm"><i class="fa fa-plus"></i> Enregistrer la Facture </button>
+            </div>
+        <div class="clearfix"></div>
+      </div>
+      <div class="x_content">
+        <table id="sortieProduit" class="table table-striped table-bordered dt-responsive nowrap" cellspacing="0" width="100%">
+                      <thead>
+                        <tr>
+                          <th>#</th>
+                          <th>PRODUIT</th>
+                          <th>QUANTITE</th>
+                          <th>PRIX DE VENTE</th>
+                          <th>MONTANT</th>
+                          <th></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+
+                      </tbody>
+                    </table>
+
+      </div>
+    </div>
+       </form>
+  </div>
+  <!-- /form color picker -->
+</div>
+{% endblock %}
+{% block js %}
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#pdtAdder').select2({
+
+        });
+        $('#pdtAdder').next().find('.select2-selection__rendered').addClass('black-text');
+        $('#id_client').select2({
+
+        });
+        $('#id_client').next().find('.select2-selection__rendered').addClass('black-text');
+    });
+
+    var btnAdder = document.querySelector('#btn_adder');
+    var btnCanceler = document.querySelector('#btn_cancel');
+
+    var pdtAdderField = document.querySelector('#pdtAdder');
+    var qteDAdderField = document.querySelector('#qteDispo');
+    var qteAdderField = document.querySelector('#qteAdder');
+    var prixAdderField = document.querySelector('#prixAdder');
+    var tableLine = document.querySelector('#sortieProduit');
+
+    var tableLineBody = tableLine.querySelector('tbody');
+    var index = 0;
+    var currentIndex = null;
+
+    var actionUpdate = false;
+
+    function buildLine(line){
+        var index = line.dataset.index
+
+        var deleter = line.querySelector('.deleter')
+
+
+        deleter.addEventListener('click', function () {
+            var confirmation = confirm('Êtes-vous sûr? Cette action est irréversible!');
+
+            if (confirmation) {
+                console.log('deleter click');
+                line.remove();
+                setTimeout(function () {
+                    alert('La ligne a été supprimée.');
+                }, 0);
+            }
+            calculTotal();
+        });
+
+
+        reinit();
+    }
+    $('#btn_cancel').on('click', function() {
+        reinit();
+    });
+
+    function reinit(){
+        currentIndex = null;
+        actionUpdate = false;
+        pdtAdderField.value = null;
+        qteDAdderField.value = null;
+        prixAdderField.value = null;
+        qteAdderField.value = null;
+        var select2Control = $('#pdtAdder');
+        select2Control.val(null).trigger('change');
+    }
+
+    function calculTotal(){
+        var table = document.getElementById("sortieProduit"), sumValTva =0.0, sumVal =0;
+
+        if(table.rows.length >0) {
+            for(var i = 1; i < table.rows.length; i++){
+                sumVal = sumVal + parseInt(table.rows[i].cells[4].innerHTML);
+            }
+        }
+        document.getElementById("value").innerHTML = "TOTAL HT : "+ sumVal.toLocaleString('fr-FR') + " F CFA";
+        document.getElementById("mt_ht").value = sumVal
+    }
+
+    btnAdder.addEventListener('click', function(event){
+        var table = document.getElementById("sortieProduit")
+        var pdtId = pdtAdderField.value;
+        var qteD = qteDAdderField.textContent;
+        var qte = qteAdderField.value;
+        var prixId = prixAdderField.textContent;
+        if(table.rows.length === 0){
+            alert('Svp, Veuillez enregistrer au moins une ligne de sortie de produit !');
+            reinit();
+        }else {
+            if(pdtId && qteD && qte && prixId){
+                var pdtLibelle = pdtAdderField.options[pdtAdderField.selectedIndex].text;
+                var currentLine = tableLineBody.querySelector('[data-index="'+ currentIndex +'"]');
+                var existedLine = tableLineBody.querySelector('[data-id="'+ pdtId +'"]');
+                var totalPrice = parseFloat(qte) * parseFloat(prixId);
+
+                if(existedLine && !actionUpdate){
+                    alert('Ce produit est déja dans la liste. Merci de choisir un autre !');
+                }else{
+                    if (qte<=0 || qte > Number(qteD)){
+                        alert('Veuillez saisir une quantité correcte !');
+                    }else{
+                        if(actionUpdate && currentLine){
+                            currentLine.innerHTML = '<td style="text-align:center;">' + currentIndex + '</td><td><input type="hidden" name="pdtIds[]" value="'+ pdtId +'" />'+ pdtLibelle +'</td> <td><input type="hidden" name="qte[]" value="'+ qte +'" />'+ qte +'</td> <td><input type="hidden" name="prixIds[]" value="'+ prixId +'" />'+ prixId +'</td> <td>'+ totalPrice +'</td> <td style="text-align:left;"><a class="deleter btn-sm btn-warning" style="cursor: pointer; margin-left:5px" data-index="'+ currentIndex +'">Supprimer</a></td>';
+                            buildLine(currentLine)
+                        }else{
+                            if(!currentLine){
+                                index++;
+                                if(index === 1){
+                                    $('#sortieProduit').find('tbody tr').remove();
+                                }
+                                var newRow = tableLineBody.insertRow(0);
+                                newRow.setAttribute('data-index', index);
+                                newRow.setAttribute('data-id', pdtId);
+                                newRow.innerHTML = '<td style="text-align:center;">' + index + '</td><td><input type="hidden" name="pdtIds[]" value="'+ pdtId +'" />'+ pdtLibelle +'</td> <td><input type="hidden" name="qte[]" value="'+ qte +'" />'+ qte +'</td> <td><input type="hidden" name="prixIds[]" value="'+ prixId +'" />'+ prixId +'</td> <td>'+ totalPrice +'</td> <td style="text-align:left;"><a class="deleter btn-sm btn-warning" style="cursor: pointer; margin-left:5px" data-index="'+ index +'">Supprimer</a>  </td>';
+                                buildLine(newRow);
+                            }
+                        }
+                    }
+                    reinit();
+                }
+            }
+            calculTotal();
+        }
+        calculTotal();
+    });
+
+
+</script>
+<script>
+    $("#pdtAdder").change(function () {
+      var urlqte = $("#sortieForm").attr("data-qte-url");
+      var produitId = $('#pdtAdder').val();
+
+      $.ajax({
+        url: urlqte,
+        data: {
+          'pdt_id': produitId
+        },
+        success: function (data) {
+          $("#qteDispo").html(data[0]);
+          $("#prixAdder").html(data[1]);
+        }
+      });
+
+    });
+</script>
+{% endblock %}

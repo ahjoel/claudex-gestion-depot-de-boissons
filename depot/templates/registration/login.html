@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <!-- Meta, title, CSS, favicons, etc. -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>CLAUDEX | Connexion</title>
+    {% load static %}
+    <!-- Bootstrap -->
+    <link href="{% static 'depot/vendors/bootstrap/dist/css/bootstrap.min.css' %}" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="{% static 'depot/vendors/font-awesome/css/font-awesome.min.css' %}" rel="stylesheet">
+    <!-- NProgress -->
+    <link href="{% static 'depot/vendors/nprogress/nprogress.css' %}" rel="stylesheet">
+    <!-- Animate.css -->
+    <link href="{% static 'depot/vendors/animate.css/animate.min.css' %}" rel="stylesheet">
+
+    <!-- Custom Theme Style -->
+    <link href="{% static 'depot/build/css/custom.min.css' %}" rel="stylesheet">
+  </head>
+
+  <body class="login">
+    <div>
+      <div class="login_wrapper">
+        <div id="login" class="form login_form">
+          <section class="login_content">
+            <form method="post">
+                {% csrf_token %}
+              <h1>CONNEXION CLAUDEX</h1>
+              <div>
+                <input type="text" autocomplete="off" placeholder="Nom Utilisateur" class="form-control" name="username" id="username" autofocus autocapitalize="none" maxlength="150" required >
+              </div>
+
+              <div>
+                  <input type="password" placeholder="Mot de passe" class="form-control" name="password" id="password" required >
+              </div>
+              <div>
+                  <input class="btn btn-info submit" type="Submit" value="Connexion">
+                  <input class="btn btn-primary " type="Reset" value="Annuler">
+              </div>
+
+              <div class="separator">
+                  {% if message|length > 0 %}
+                    <span style="color: #e36d6d">{{message}}</span>
+                  {% endif %}
+                    <div class="clearfix"></div>
+                    <br />
+                  <div>
+
+                  <p>©2023 Tous drois réservés.</p>
+                </div>
+              </div>
+            </form>
+          </section>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

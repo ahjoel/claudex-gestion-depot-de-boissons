@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% load static %}
+
+<div class="page-title">
+    <div class="title_left">
+        <h3>Gestion des Paiements</h3>
+    </div>
+
+    <div class="title_right">
+        <div class="col-md-5 col-sm-5  form-group pull-right top_search">
+
+        {% for message in messages %}
+            {% if 'custom-warning' in message.tags %}
+                <div class="alert alert-warning" role="alert">
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+            {% else %}
+                <!-- Handle other types of messages as needed -->
+                <div class="alert alert-info" role="alert">
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            {% endif %}
+
+        {% endfor %}
+
+
+        </div>
+    </div>
+</div>
+<div class="clearfix"></div>
+<div class="row">
+    <div class="col-md-12 col-sm-12 ">
+        <div class="x_panel">
+            <div class="x_title">
+                <h2>{{ titre }} - Payement </h2>
+                <ul class="nav navbar-right panel_toolbox">
+                    <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                    </li>
+
+                    <li><a class="close-link"><i class="fa fa-close"></i></a>
+                    </li>
+                </ul>
+                <div class="text-right mt-8" style="margin-right: 15px">
+                    <a href="{% url 'payement' %}" class="btn btn-info btn-sm"><i class="fa fa-arrow-circle-left"></i> Retour Liste</a>
+                </div>
+                <div class="clearfix"></div>
+            </div>
+            <div class="x_content">
+                <br />
+                <form method="POST" autocomplete="off" id="payementForm"  data-mt-url="{% url 'ajax_load_mt_fact' %}" class="form-horizontal form-label-left">
+                    {% csrf_token %}
+                    <div class="item form-group">
+                        <label class="col-form-label col-md-3 col-sm-3 label-align" for="id_code_payement">Code Payement <span class="required">*</span>
+                        </label>
+                        <div class="col-md-6 col-sm-6 ">
+                            {{ form.code_payement }}
+                        </div>
+                    </div>
+                    <div class="item form-group">
+                        <label class="col-form-label col-md-3 col-sm-3 label-align" for="id_date_payement">Date Payement <span class="required">*</span>
+                        </label>
+                        <div class="col-md-6 col-sm-6 ">
+                            <input type="date" name="date_payement" class="form-control" required="True" id="id_date_payement">
+                        </div>
+                    </div>
+                    <div class="item form-group">
+                        <label class="col-form-label col-md-3 col-sm-3 label-align" for="facture">Facture <span class="required">*</span>
+                        </label>
+                        <div class="col-md-6 col-sm-6 ">
+                            {{ form.facture }}
+                        </div>
+                    </div>
+                   <div class="item form-group">
+                        <label class="col-form-label col-md-3 col-sm-3 label-align" for="modelb">Montant Facture <span class="required">*</span>
+                        </label>
+                        <div class="col-md-6 col-sm-6 ">
+                            <input type="number" name="mt_facture" id="id_mt_facture" class="form-control" readonly="True">
+                        </div>
+                    </div>
+                    <div class="item form-group">
+                        <label class="col-form-label col-md-3 col-sm-3 label-align" for="modelb">Montant Encaisse <span class="required">*</span>
+                        </label>
+                        <div class="col-md-6 col-sm-6 ">
+                            {{ form.mt_encaisse }}
+                        </div>
+                    </div>
+                    <div class="item form-group">
+                        <label class="col-form-label col-md-3 col-sm-3 label-align" for="producteur">Reliquat <span class="required">*</span>
+                        </label>
+                        <div class="col-md-6 col-sm-6 ">
+                            {{ form.reliquat }}
+                        </div>
+                    </div>
+
+                     <input type="hidden" id="active" name="active" value="True"/>
+                    <div class="ln_solid"></div>
+                    <div class="item form-group">
+                        <div class="col-md-6 col-sm-6 offset-md-3">
+                            <button class="btn btn-warning btn-sm" type="reset">Annuler</button>
+                            <button type="submit" onclick="return confirm('Voulez vous réelement ajouter ce payement ?')" class="btn btn-success btn-sm">Sauvegarder</button>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block js %}
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#id_facture').select2({
+
+        });
+        $('#id_facture').next().find('.select2-selection__rendered').addClass('black-text');
+    });
+</script>
+<script>
+    $("#id_facture").change(function () {
+      var urlmt = $("#payementForm").attr("data-mt-url");
+      var factureId = $('#id_facture').val();
+
+      $.ajax({
+        url: urlmt,
+        data: {
+          'fact_id': factureId
+        },
+        success: function (data) {
+          $("#mt_ht").html(data[0]);
+          document.getElementById("id_mt_facture").value = data[0]
+        }
+      });
+
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,138 @@
+from django.contrib.auth.models import User
+from django.db import models
+
+
+# Create your models here.
+class ModelB(models.Model):
+    auteur = models.ForeignKey(User, on_delete=models.PROTECT)
+    code = models.CharField(max_length=10, blank=False, null=False, unique=True)
+    libelle = models.CharField(max_length=30, blank=False, null=False)
+
+    active = models.BooleanField(default=True)
+    date_creation = models.DateTimeField(auto_now_add=True)
+    date_modification = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.libelle
+
+
+class ModeR(models.Model):
+    auteur = models.ForeignKey(User, on_delete=models.PROTECT)
+    code = models.CharField(max_length=10, blank=False, null=False, unique=True)
+    libelle = models.CharField(max_length=30, blank=False, null=False)
+
+    active = models.BooleanField(default=True)
+    date_creation = models.DateTimeField(auto_now_add=True)
+    date_modification = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.libelle
+
+
+class Producteur(models.Model):
+    auteur = models.ForeignKey(User, on_delete=models.PROTECT)
+    code = models.CharField(max_length=10, blank=False, null=False, unique=True)
+    libelle = models.CharField(max_length=30, blank=False, null=False)
+
+    active = models.BooleanField(default=True)
+    date_creation = models.DateTimeField(auto_now_add=True)
+    date_modification = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.libelle
+
+
+class Produit(models.Model):
+    auteur = models.ForeignKey(User, on_delete=models.PROTECT)
+    modelb = models.ForeignKey(ModelB, on_delete=models.PROTECT)
+    producteur = models.ForeignKey(Producteur, on_delete=models.PROTECT)
+    code = models.CharField(max_length=40, blank=False, null=False, unique=True)
+    libelle = models.CharField(max_length=80, blank=False, null=False)
+    pv = models.IntegerField()
+    seuil = models.FloatField()
+
+    active = models.BooleanField(default=True)
+    date_creation = models.DateTimeField(auto_now_add=True)
+    date_modification = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.libelle}-{self.modelb}"
+
+
+class Client(models.Model):
+    auteur = models.ForeignKey(User, on_delete=models.PROTECT)
+    code = models.CharField(max_length=20, blank=False, null=False, unique=True)
+    rs = models.CharField(max_length=80, blank=False, null=False)
+    ville = models.CharField(max_length=30, blank=False, null=False)
+    tel = models.CharField(max_length=30, blank=False, null=False)
+    mail = models.EmailField(max_length=40, blank=False, null=False)
+
+    active = models.BooleanField(default=True)
+    date_creation = models.DateTimeField(auto_now_add=True)
+    date_modification = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.rs}"
+
+
+class Facture(models.Model):
+    auteur = models.ForeignKey(User, on_delete=models.PROTECT)
+    code_facture = models.CharField(max_length=80, unique=True)
+    date_facture = models.DateField()
+    client = models.ForeignKey(Client, on_delete=models.PROTECT)
+    type_client = models.CharField(max_length=30, blank=True, null=True)
+    remise = models.IntegerField(default=0)
+    tva = models.IntegerField(default=0)
+    mt_ttc = models.IntegerField(default=0)
+    situation = models.CharField(max_length=30, default="NON", blank=True, null=True)
+
+    active = models.BooleanField(default=True)
+    date_creation = models.DateTimeField(auto_now_add=True)
+    date_modification = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.code_facture}"
+
+    def calcul_montant_total(self):
+        montant_ht = sum(
+            mouvement.sous_total() for mouvement in self.mouvement_set.filter(active=True)
+        )
+        montant_ttc = montant_ht * (1 + self.tva) + (-1 * self.remise)
+        self.mt_ttc = montant_ttc
+        self.save()
+        return montant_ttc
+
+
+class Mouvement(models.Model):
+    auteur = models.ForeignKey(User, on_delete=models.PROTECT)
+    facture = models.ForeignKey(Facture, on_delete=models.PROTECT, null=True)
+    produit = models.ForeignKey(Produit, on_delete=models.PROTECT)
+    qte = models.FloatField()
+    type_op = models.CharField(max_length=5, blank=False, null=False)
+
+    active = models.BooleanField(default=True)
+    date_creation = models.DateTimeField(auto_now_add=True)
+    date_modification = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.facture}-{self.produit}"
+
+    def sous_total(self):
+        return self.produit.pv * self.qte
+
+
+class Payement(models.Model):
+    auteur = models.ForeignKey(User, on_delete=models.PROTECT)
+    code_payement = models.CharField(max_length=80, unique=True)
+    date_payement = models.DateField()
+    facture = models.ForeignKey(Facture, on_delete=models.PROTECT)
+    mt_encaisse = models.IntegerField(default=0)
+    mt_restant = models.IntegerField(default=0)
+    reliquat = models.IntegerField(default=0)
+
+    active = models.BooleanField(default=True)
+    date_creation = models.DateTimeField(auto_now_add=True)
+    date_modification = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.code_payement}"

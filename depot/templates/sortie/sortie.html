@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% load static %}
+{% load humanize %}
+ <div class="page-title">
+      <div class="title_left">
+        <h3>Gestion des Sorties de Stock</h3>
+      </div>
+
+    <div class="title_right">
+        <div class="col-md-5 col-sm-5  form-group pull-right top_search">
+
+        {% for message in messages %}
+            {% if 'custom-warning' in message.tags %}
+                <div class="alert alert-warning" role="alert">
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+            {% else %}
+                <!-- Handle other types of messages as needed -->
+                <div class="alert alert-info" role="alert">
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            {% endif %}
+
+        {% endfor %}
+
+
+        </div>
+    </div>
+ </div>
+
+<div class="clearfix"></div>
+
+<div class="row">
+      <div class="col-md-12 col-sm-12 ">
+        <div class="x_panel">
+          <div class="x_title">
+            <h2>Liste des Sorties de Stock</h2>
+
+            <ul class="nav navbar-right panel_toolbox">
+              <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+              </li>
+              <li><a class="close-link"><i class="fa fa-close"></i></a>
+              </li>
+            </ul>
+
+            <div class="text-right mt-8" style="margin-right: 15px">
+                <a href="{% url 'create-sortie' %}" class="btn btn-info btn-sm"><i class="fa fa-plus"></i> Ajouter</a>
+            </div>
+
+            <div class="clearfix"></div>
+          </div>
+          <div class="x_content">
+              <div class="row">
+                <div class="col-sm-12">
+                  <div class="card-box table-responsive">
+
+                    {% if sorties|length > 0 %}
+                    <table id="datatable-responsive" class="table table-striped table-bordered dt-responsive nowrap" cellspacing="0" width="100%">
+                      <thead>
+                        <tr>
+                          <th>#</th>
+                          <th>NUMERO FACTURE</th>
+                          <th>DATE</th>
+                          <th>PRODUIT</th>
+                          <th>MODEL</th>
+                          <th>PRODUCTEUR</th>
+                          <th>PRIX DE VENTE</th>
+                          <th>QUANTITE</th>
+                          <th>MONTANT</th>
+                          <th>ACTIONS</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                      {% for sortie in sorties %}
+                        <tr>
+                          <td>{{ forloop.counter }}</td>
+                          <td>{{ sortie.facture.code_facture }}</td>
+                          <td>{{ sortie.date_creation }}</td>
+                          <td>{{ sortie.produit.libelle }}</td>
+                          <td>{{ sortie.produit.modelb }}</td>
+                          <td>{{ sortie.produit.producteur }}</td>
+                          <td>{{ sortie.produit.pv|intcomma }}</td>
+                          <td>{{ sortie.qte }}</td>
+                          <td>{{ sortie.montant|intcomma }}</td>
+                          <td class="text-center">
+                                <div>
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-primary btn-sm btn-xs dropdown-toggle" data-toggle="dropdown">
+                                            <i class="fa fa-cog"></i>
+                                            <span class="caret"></span>
+                                        </button>
+                                        <ul class="dropdown-menu pull-right" role="menu">
+                                            <li><a class="btn btn-sm" href="{% url 'update-sortie' sortie.id %}"> <i class="fa fa-edit fa-fw"></i> Modifier</a>
+                                            </li>
+                                            <li><a class="btn btn-sm" href="{% url 'delete-sortie' sortie.id %}" onclick="return confirm('Voulez vous réelement supprimer ce produit  : {{ sortie.produit.libelle }} {{ sortie.qte }} ?')"> <i class="fa fa-trash fa-fw"></i> Supprimer</a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                      {% endfor %}
+                      </tbody>
+                    </table>
+                    {% else %}
+                        <p>Aucun enregistrement disponible :-)</p>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+          </div>
+        </div>
+      </div>
+   </div>
+{% endblock %}

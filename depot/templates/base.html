@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <!-- Meta, title, CSS, favicons, etc. -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+      {% load static %}
+	<link rel="icon" href="{% static 'depot/images/favicon.ico' %}" type="image/ico" />
+
+    <title>CLAUDEX App </title>
+
+    <!-- Bootstrap -->
+    <link href="{% static 'depot/vendors/bootstrap/dist/css/bootstrap.min.css' %}" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="{% static 'depot/vendors/font-awesome/css/font-awesome.min.css' %}" rel="stylesheet">
+    <!-- NProgress -->
+    <link href="{% static 'depot/vendors/nprogress/nprogress.css' %}" rel="stylesheet">
+    <!-- iCheck -->
+    <link href="{% static 'depot/vendors/iCheck/skins/flat/green.css' %}" rel="stylesheet">
+	
+    <!-- bootstrap-progressbar -->
+    <link href="{% static 'depot/vendors/bootstrap-progressbar/css/bootstrap-progressbar-3.3.4.min.css' %}" rel="stylesheet">
+    <!-- JQVMap -->
+    <link href="{% static 'depot/vendors/jqvmap/dist/jqvmap.min.css' %}" rel="stylesheet"/>
+    <!-- bootstrap-daterangepicker -->
+    <link href="{% static 'depot/vendors/bootstrap-daterangepicker/daterangepicker.css' %}" rel="stylesheet">
+
+    <!-- Datatables -->
+    
+    <link href="{% static 'depot/vendors/datatables.net-bs/css/dataTables.bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'depot/vendors/datatables.net-buttons-bs/css/buttons.bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'depot/vendors/datatables.net-fixedheader-bs/css/fixedHeader.bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'depot/vendors/datatables.net-responsive-bs/css/responsive.bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'depot/vendors/datatables.net-scroller-bs/css/scroller.bootstrap.min.css' %}" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'depot/build/css/select2.min.css' %}">
+      <style>
+          .black-text {
+                color: black !important;
+            }
+      </style>
+    <!-- Custom Theme Style -->
+    <link href="{% static 'depot/build/css/custom.min.css' %}" rel="stylesheet">
+  </head>
+
+  <body class="nav-md">
+    <div class="container body">
+      <div class="main_container">
+        <div class="col-md-3 left_col">
+             {% with url_name=request.resolver_match.url_name %}
+          <div class="left_col scroll-view">
+            <div class="navbar nav_title" style="border: 0;">
+              <a href="{% url '/' %}" class="site_title"><i class="fa fa-paw"></i> <span>CLAUDEX</span></a>
+            </div>
+
+            <div class="clearfix"></div>
+
+            <!-- menu profile quick info -->
+            <div class="profile clearfix">
+              <div class="profile_pic">
+                <img src="{% static 'depot/images/user.png' %}" alt="..." class="img-circle profile_img">
+              </div>
+              <div class="profile_info">
+                <span>Bienvenue,</span>
+                <h2>{{user.username}}</h2>
+              </div>
+            </div>
+            <!-- /menu profile quick info -->
+
+            <br />
+
+            <!-- sidebar menu -->
+            <div id="sidebar-menu" class="main_menu_side hidden-print main_menu">
+              <div class="menu_section">
+                <h3>Données de Base</h3>
+                <ul class="nav side-menu">
+                  <li>
+                    <a href="{% url '/' %}" class="{% if url_name == '/' %} active {% endif %}"><i class="fa fa-home"></i> Accueil</a>
+                  </li>
+                  <li>
+                    <a href="{% url 'model' %}" class="{% if url_name == 'model' or url_name == 'create-model' or url_name == 'update-model' %}active{% endif %}">
+                        <i class="fa fa-bookmark"></i>Gestion des Models</a>
+                  </li>
+                  <li>
+                    <a href="{% url 'producteur' %}" class="{% if url_name == 'producteur' or url_name == 'create-producteur' or url_name == 'update-producteur' %}active{% endif %}">
+                        <i class="fa fa-truck"></i>Gestion des Producteurs</a>
+                  </li>
+                  <li>
+                    <a href="{% url 'produit' %}" class="{% if url_name == 'produit' or url_name == 'create-produit' or url_name == 'update-produit' %}active{% endif %}">
+                        <i class="fa fa-cubes"></i>Gestion des Produits</a>
+                  </li>
+                  <li>
+                    <a href="{% url 'client' %}" class="{% if url == 'client' or url == 'create-client' or url_name == 'update-client' %}active{% endif %}">
+                        <i class="fa fa-group"></i>Gestion des Clients</a>
+                  </li>
+                  <li>
+                    <a href="{% url 'moder' %}" class="{% if url == 'moder' or url == 'create-moder' or url_name == 'update-moder' %}active{% endif %}">
+                        <i class="fa fa-th-large"></i>Modes de Règlement</a>
+                  </li>
+                </ul>
+              </div>
+              <div class="menu_section">
+                <h3>Stock et Vente</h3>
+                <ul class="nav side-menu">
+                  <li>
+                    <a href="{% url 'entree' %}" class="{% if url == 'entree' or url == 'create-entree' or url_name == 'update-entree' %}active{% endif %}">
+                        <i class="fa fa-arrow-circle-left"></i> Gestion du Stock Entrées</a>
+                  </li>
+                  <li>
+                    <a href="{% url 'sortie' %}" class="{% if url == 'sortie' or url == 'create-sortie' or url_name == 'update-sortie' %}active{% endif %}">
+                        <i class="fa fa-arrow-circle-right"></i> Gestion du Stock Sorties</a>
+                  </li>
+                </ul>
+              </div>
+              <div class="menu_section">
+                <h3>Facturation</h3>
+                <ul class="nav side-menu">
+                  <li>
+                    <a href="{% url 'facture' %}" class="{% if url == 'facture' %}active{% endif %}"><i class="fa fa-file"></i> Gestion des Factures</a>
+                  </li>
+                  <li>
+                    <a href="{% url 'payement' %}" class="{% if url == 'payement' %}active{% endif %}"><i class="fa fa-money"></i> Gestion des Paiements</a>
+                  </li>
+                </ul>
+              </div>
+              <div class="menu_section">
+               
+                <ul class="nav side-menu">
+                  <li><a><i class="fa fa-file-pdf-o"></i> Listings <span class="fa fa-chevron-down"></span></a>
+                    <ul class="nav child_menu">
+                      <li>
+                        <a><i class="fa fa-file"></i> Statistiques Ventes</a>
+                      </li>
+                      <li>
+                        <a><i class="fa fa-file"></i> Inventaire Stock Général</a>
+                      </li>
+                      <li>
+                        <a><i class="fa fa-file"></i> Archivage Facture</a>
+                      </li>
+                      <li>
+                        <a><i class="fa fa-file"></i> Suivi Restes et Pénalités</a>
+                      </li>
+                    </ul>
+                 
+                </ul>
+              </div>
+
+            </div>
+            <!-- /sidebar menu -->
+
+            <!-- /menu footer buttons -->
+            <div class="sidebar-footer hidden-small">
+              <a data-toggle="tooltip" data-placement="top" title="Settings">
+                <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
+              </a>
+              <a data-toggle="tooltip" data-placement="top" title="FullScreen">
+                <span class="glyphicon glyphicon-fullscreen" aria-hidden="true"></span>
+              </a>
+              <a data-toggle="tooltip" data-placement="top" title="Lock">
+                <span class="glyphicon glyphicon-eye-close" aria-hidden="true"></span>
+              </a>
+              <a data-toggle="tooltip" data-placement="top" title="Logout" href="login.html">
+                <span class="glyphicon glyphicon-off" aria-hidden="true"></span>
+              </a>
+            </div>
+            <!-- /menu footer buttons -->
+          </div>
+            {% endwith %}
+        </div>
+
+        <!-- top navigation -->
+        <div class="top_nav">
+          <div class="nav_menu">
+              <div class="nav toggle">
+                <a id="menu_toggle"><i class="fa fa-bars"></i></a>
+              </div>
+              <nav class="nav navbar-nav">
+              <ul class=" navbar-right">
+                  {% if user.is_authenticated %}
+                <li class="nav-item dropdown open" style="padding-left: 15px;">
+                  <a href="#" class="user-profile dropdown-toggle" aria-haspopup="true" id="navbarDropdown" data-toggle="dropdown" aria-expanded="false">
+                    <img src="{% static 'depot/images/user.png' %}" alt="">{{user.username}}
+                  </a>
+                  <div class="dropdown-menu dropdown-usermenu pull-right" aria-labelledby="navbarDropdown">
+                    <a class="dropdown-item"  href="#"> Profile</a>
+                    <a class="dropdown-item"   href="/logout"><i class="fa fa-sign-out pull-right"></i> Déconnexion</a>
+                  </div>
+                </li>
+                  {% endif %}
+
+              </ul>
+            </nav>
+          </div>
+        </div>
+        <!-- /top navigation -->
+
+  <!-- page content -->
+  <div class="right_col" role="main">
+
+
+    <div class="">
+        {% block content %}
+        {% endblock %}
+    </div>
+        
+  </div>
+        <!-- /page content -->
+
+        <!-- footer content -->
+        <footer>
+          <div class="pull-right">
+            SYSTEME DE GESTION DES VENTES EN GROS ET DETAIL DES PRODUITS BB ET SNB | POWERED BY <a href="https://joelaholou.netlify.app/" target="_blank">🌐KAJ SOFTWARE</a>
+          </div>
+          <div class="clearfix"></div>
+        </footer>
+        <!-- /footer content -->
+      </div>
+    </div>
+
+    <!-- jQuery -->
+    <script src="{% static 'depot/vendors/jquery/dist/jquery.min.js' %}"></script>
+    <!-- Bootstrap -->
+    <script src="{% static 'depot/vendors/bootstrap/dist/js/bootstrap.bundle.min.js' %}"></script>
+    <!-- FastClick -->
+    <script src="{% static 'depot/vendors/fastclick/lib/fastclick.js' %}"></script>
+    <!-- NProgress -->
+    <script src="{% static 'depot/vendors/nprogress/nprogress.js' %}"></script>
+    <!-- Chart.js -->
+    <script src="{% static 'depot/vendors/Chart.js/dist/Chart.min.js' %}"></script>
+    <!-- gauge.js -->
+    <script src="{% static 'depot/vendors/gauge.js/dist/gauge.min.js' %}"></script>
+    <!-- bootstrap-progressbar -->
+    <script src="{% static 'depot/vendors/bootstrap-progressbar/bootstrap-progressbar.min.js' %}"></script>
+    <!-- iCheck -->
+    <script src="{% static 'depot/vendors/iCheck/icheck.min.js' %}"></script>
+    <!-- Skycons -->
+    <script src="{% static 'depot/vendors/skycons/skycons.js' %}"></script>
+    <!-- Flot -->
+    <script src="{% static 'depot/vendors/Flot/jquery.flot.js' %}"></script>
+    <script src="{% static 'depot/vendors/Flot/jquery.flot.pie.js' %}"></script>
+    <script src="{% static 'depot/vendors/Flot/jquery.flot.time.js' %}"></script>
+    <script src="{% static 'depot/vendors/Flot/jquery.flot.stack.js' %}"></script>
+    <script src="{% static 'depot/vendors/Flot/jquery.flot.resize.js' %}"></script>
+    <!-- Flot plugins -->
+    <script src="{% static 'depot/vendors/flot.orderbars/js/jquery.flot.orderBars.js' %}"></script>
+    <script src="{% static 'depot/vendors/flot-spline/js/jquery.flot.spline.min.js' %}"></script>
+    <script src="{% static 'depot/vendors/flot.curvedlines/curvedLines.js' %}"></script>
+    <!-- DateJS -->
+    <script src="{% static 'depot/vendors/DateJS/build/date.js' %}"></script>
+    <!-- JQVMap -->
+    <script src="{% static 'depot/vendors/jqvmap/dist/jquery.vmap.js' %}"></script>
+    <script src="{% static 'depot/vendors/jqvmap/dist/maps/jquery.vmap.world.js' %}"></script>
+    <script src="{% static 'depot/vendors/jqvmap/examples/js/jquery.vmap.sampledata.js' %}"></script>
+    <!-- bootstrap-daterangepicker -->
+    <script src="{% static 'depot/vendors/moment/min/moment.min.js' %}"></script>
+    <script src="{% static 'depot/vendors/bootstrap-daterangepicker/daterangepicker.js' %}"></script>
+
+    <!-- Datatables -->
+    <script src="{% static 'depot/vendors/datatables.net/js/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'depot/vendors/datatables.net-bs/js/dataTables.bootstrap.min.js' %}"></script>
+    <script src="{% static 'depot/vendors/datatables.net-buttons/js/dataTables.buttons.min.js' %}"></script>
+    <script src="{% static 'depot/vendors/datatables.net-buttons-bs/js/buttons.bootstrap.min.js' %}"></script>
+    <script src="{% static 'depot/vendors/datatables.net-buttons/js/buttons.flash.min.js' %}"></script>
+    <script src="{% static 'depot/vendors/datatables.net-buttons/js/buttons.html5.min.js' %}"></script>
+    <script src="{% static 'depot/vendors/datatables.net-buttons/js/buttons.print.min.js' %}"></script>
+    <script src="{% static 'depot/vendors/datatables.net-fixedheader/js/dataTables.fixedHeader.min.js' %}"></script>
+    <script src="{% static 'depot/vendors/datatables.net-keytable/js/dataTables.keyTable.min.js' %}"></script>
+    <script src="{% static 'depot/vendors/datatables.net-responsive/js/dataTables.responsive.min.js' %}"></script>
+    <script src="{% static 'depot/vendors/datatables.net-responsive-bs/js/responsive.bootstrap.js' %}"></script>
+    <script src="{% static 'depot/vendors/datatables.net-scroller/js/dataTables.scroller.min.js' %}"></script>
+    <script src="{% static 'depot/vendors/jszip/dist/jszip.min.js' %}"></script>
+    <script src="{% static 'depot/vendors/pdfmake/build/pdfmake.min.js' %}s"></script>
+    <script src="{% static 'depot/vendors/pdfmake/build/vfs_fonts.js' %}"></script>
+    <script src="{% static 'depot/build/js/select2.min.js' %}"></script>
+    <script>
+        $(document).ready(function () {
+            $('#datatable-responsive').DataTable({
+                language: {
+                    url: "{% static 'depot/build/js/french.json' %}"
+                },
+                responsive: true
+            });
+        });
+         $(document).ready(function () {
+            $('#sortieProduit').DataTable({
+                language: {
+                    url: "{% static 'depot/build/js/french.json' %}"
+                },
+                responsive: true
+            });
+        });
+
+    </script>
+    <!-- Custom Theme Scripts -->
+    <script src="{% static 'depot/build/js/custom.min.js' %}"></script>
+	{% block js %} {% endblock %}
+  </body>
+</html>
