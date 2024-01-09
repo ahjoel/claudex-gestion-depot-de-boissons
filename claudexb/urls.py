@@ -24,3 +24,4 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 ]
 urlpatterns += staticfiles_urlpatterns()
+handler404 = 'depot.views.custom_404'

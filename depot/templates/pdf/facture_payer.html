@@ -12,7 +12,7 @@
             font-size: 130%;
           }
         @page {
-            size: A4 portrait;
+            size: A4 landscape;
             margin: 1cm;
         }
         .invoice-container {
@@ -86,7 +86,10 @@
     </style>
 </head>
 <body>
-    <div class="invoice-container">
+<table>
+    <tr>
+        <td>
+                <div style="font-size: 10px" class="invoice-container">
         <div class="invoice-header">
             <h1>CLAUDEX <small>Vente en gros et en détails des produits BB et SNB</small></h1>
         </div>
@@ -100,7 +103,6 @@
                 <p><strong>To:</strong> Client : {{facture.client}}</p>
                 <p>Facture N° {{facture.code_facture}}</p>
                 <p>Date Facture: {{facture.date_facture}}</p>
-                <p>Date Payement : {{info_payement.date_payement}}</p>
             </div>
         </div>
 
@@ -130,39 +132,147 @@
         </div>
 
     </div>
-    <br>
-     <table style="float: right; width: 150px;">
-        <tr>
-            <td style="width: 150px;"><strong>MONTANT HT :</strong></td>
-            <td style="width: 150px;">{{montant_ht|intcomma}}</td>
-        </tr>
-        <tr>
-            <td style="width: 150px;"><strong>TAUX TVA :</strong></td>
-            <td style="padding: 1px;">0%</td>
-        </tr>
-        <tr>
-            <td style="width: 150px;"><strong>MONTANT TVA :</strong></td>
-            <td style="padding: 1px;">{{tva|intcomma}}</td>
-        </tr>
-        <tr>
-            <td style="width: 150px;"><strong>REMISE :</strong></td>
-            <td style="">{{remise|intcomma}}</td>
-        </tr>
-        <tr>
-            <td style="width: 150px;"><strong>MONTANT TTC :</strong></td>
-            <td style="padding: 1px;">{{montant_total|intcomma}}</td>
-        </tr>
-    </table>
-     <div class="footerr">
-            <p>ARRÊTEE LA PRESENTE FACTURE A LA SOMME DE : {{montant_total_lettre|upper}} FRANC(S) CFA</p>
+                <br>
+                <div class="footerr" style="font-size: 9px">
+                        <p><em>ARRÊTEE LA PRESENTE FACTURE A LA SOMME DE : {{montant_total_lettre|upper}} FRANC(S) CFA</em></p>
+                    </div>
+
+                 <table style="width:100%; border-collapse: collapse; font-size: 9px">
+                    <tr>
+                        <td style=""><strong>MONTANT HT :</strong></td>
+                        <td style="">{{montant_ht|intcomma}}</td>
+                        <td style=""><strong>REGLEMENT</strong></td>
+                        <td style=""><strong>M. PAYEMENT.</strong> : ESPECE</td>
+                        <td style=""><strong>Date Ech.</strong> : {{date_echeance}}</td>
+                    </tr>
+                    <tr>
+                        <td style=""><strong>TAUX TVA :</strong></td>
+                        <td style="padding: 1px;">0%</td>
+                        <td style=""></td>
+                        <td style=""><strong>R. à Payer :</strong> {{montant_restant|intcomma}}</td>
+                        <td style=""><strong>Mont. Versé :</strong> {{total_reglee_for_facture|intcomma}}</td>
+                    </tr>
+                    <tr>
+                        <td style=""><strong>MONTANT TVA :</strong></td>
+                        <td style="padding: 1px;">{{tva|intcomma}}</td>
+                        <td style=""></td>
+                        <td style=""><strong>Mont. Enc :</strong> {{total_reglee_for_facture|intcomma}}</td>
+                        <td style=""><strong>Reliquat :</strong> 0</td>
+                    </tr>
+                    <tr>
+                        <td style=""><strong>REMISE :</strong></td>
+                        <td style="">{{remise|intcomma}}</td>
+                        <td style=""></td>
+                        <td style=""><strong>Ancien reste à Payer :</strong> 0</td>
+                    </tr>
+                    <tr>
+                        <td style=""><strong>MONTANT TTC :</strong></td>
+                        <td style="padding: 1px;">{{montant_total|intcomma}}</td>
+                    </tr>
+                </table>
+
+
+                <br><br>
+                <div class="bot">
+                    <span style="text-align: center"> AGOE AMANDETA EPP Amandeta Face Antenne Togocom; Tel :(+228) 92 80 26 38 </span>
+                    <br>
+                    Page 1 / 1
+                </div>
+        </td>
+        <td style="width: 10px"></td>
+        <td>
+                <div style="font-size: 10px" class="invoice-container">
+        <div class="invoice-header">
+            <h1>CLAUDEX <small>Vente en gros et en détails des produits BB et SNB</small></h1>
         </div>
 
+        <div class="invoice-details">
+            <div class="left">
+                <p><strong>From:</strong> CLAUDEX</p>
+                <p>Facturation : {{facturateur}}</p>
+            </div>
+            <div class="right" style="height: 25px">
+                <p><strong>To:</strong> Client : {{facture.client}}</p>
+                <p>Facture N° {{facture.code_facture}}</p>
+                <p>Date Facture: {{facture.date_facture}}</p>
+            </div>
+        </div>
 
-    <div class="bot">
-        <span style="text-align: center"> AGOE AMANDETA EPP Amandeta Face Antenne Togocom; Tel :(+228) 92 80 26 38 </span>
-        <br>
-        Page <pdf:pagenumber> / <pdf:pagecount>
+        <div class="invoice-items">
+            <table repeat="1">
+                <thead>
+                    <tr>
+                        <th style="width: 450px">DESIGNATION</th>
+                        <th style="width: 50px">QTE</th>
+                        <th style="width: 100px">P.U.</th>
+                        <th style="width: 150px">MONTANT</th>
+                    </tr>
+                </thead>
+                 <tbody>
+                    {% for mouvement in mouvements %}
+                    <tr>
+                        <td>{{mouvement.produit}}</td>
+                        <td>{{mouvement.qte|intcomma}}</td>
+                        <td>{{mouvement.produit.pv|intcomma}}</td>
+                        <td>{{mouvement.sous_total|intcomma}}</td>
+                    </tr>
+                    {% endfor %}
+
+                    <!-- Add more rows as needed -->
+                </tbody>
+            </table>
+        </div>
+
     </div>
+                <br>
+                <div class="footerr" style="font-size: 9px">
+                        <p><em>ARRÊTEE LA PRESENTE FACTURE A LA SOMME DE : {{montant_total_lettre|upper}} FRANC(S) CFA</em></p>
+                    </div>
+
+                 <table style="width:100%; border-collapse: collapse; font-size: 9px">
+                    <tr>
+                        <td style=""><strong>MONTANT HT :</strong></td>
+                        <td style="">{{montant_ht|intcomma}}</td>
+                        <td style=""><strong>REGLEMENT</strong></td>
+                        <td style=""><strong>M. PAYEMENT.</strong> : ESPECE</td>
+                        <td style=""><strong>Date Ech.</strong> : {{date_echeance}}</td>
+                    </tr>
+                    <tr>
+                        <td style=""><strong>TAUX TVA :</strong></td>
+                        <td style="padding: 1px;">0%</td>
+                        <td style=""></td>
+                        <td style=""><strong>R. à Payer :</strong> {{montant_restant|intcomma}}</td>
+                        <td style=""><strong>Mont. Versé :</strong> {{total_reglee_for_facture|intcomma}}</td>
+                    </tr>
+                    <tr>
+                        <td style=""><strong>MONTANT TVA :</strong></td>
+                        <td style="padding: 1px;">{{tva|intcomma}}</td>
+                        <td style=""></td>
+                        <td style=""><strong>Mont. Enc :</strong> {{total_reglee_for_facture|intcomma}}</td>
+                        <td style=""><strong>Reliquat :</strong> 0</td>
+                    </tr>
+                    <tr>
+                        <td style=""><strong>REMISE :</strong></td>
+                        <td style="">{{remise|intcomma}}</td>
+                        <td style=""></td>
+                        <td style=""><strong>Ancien reste à Payer :</strong> 0</td>
+                    </tr>
+                    <tr>
+                        <td style=""><strong>MONTANT TTC :</strong></td>
+                        <td style="padding: 1px;">{{montant_total|intcomma}}</td>
+                    </tr>
+                </table>
+
+                <br><br>
+                <div class="bot">
+                    <span style="text-align: center"> AGOE AMANDETA EPP Amandeta Face Antenne Togocom; Tel :(+228) 92 80 26 38 </span>
+                    <br>
+                    Page 1 / 1
+                </div>
+
+        </td>
+    </tr>
+</table>
 
 </body>
 </html>

@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import models
+from django.db.models import Sum
 
 
 # Create your models here.
@@ -15,6 +16,9 @@ class ModelB(models.Model):
     def __str__(self):
         return self.libelle
 
+    class Meta:
+        verbose_name_plural = "GESTION DES MODELS"
+
 
 class ModeR(models.Model):
     auteur = models.ForeignKey(User, on_delete=models.PROTECT)
@@ -28,6 +32,9 @@ class ModeR(models.Model):
     def __str__(self):
         return self.libelle
 
+    class Meta:
+        verbose_name_plural = "GESTION DES MODES DE REGLEMENT"
+
 
 class Producteur(models.Model):
     auteur = models.ForeignKey(User, on_delete=models.PROTECT)
@@ -40,6 +47,9 @@ class Producteur(models.Model):
 
     def __str__(self):
         return self.libelle
+
+    class Meta:
+        verbose_name_plural = "GESTION DES PRODUCTEURS"
 
 
 class Produit(models.Model):
@@ -58,6 +68,9 @@ class Produit(models.Model):
     def __str__(self):
         return f"{self.libelle}-{self.modelb}"
 
+    class Meta:
+        verbose_name_plural = "GESTION DES PRODUITS"
+
 
 class Client(models.Model):
     auteur = models.ForeignKey(User, on_delete=models.PROTECT)
@@ -73,6 +86,9 @@ class Client(models.Model):
 
     def __str__(self):
         return f"{self.rs}"
+
+    class Meta:
+        verbose_name_plural = "GESTION DES CLIENTS"
 
 
 class Facture(models.Model):
@@ -92,6 +108,9 @@ class Facture(models.Model):
 
     def __str__(self):
         return f"{self.code_facture}"
+
+    class Meta:
+        verbose_name_plural = "GESTION DES FACTURES"
 
     def calcul_montant_total(self):
         montant_ht = sum(
@@ -121,6 +140,7 @@ class Mouvement(models.Model):
         return self.produit.pv * self.qte
 
 
+
 class Payement(models.Model):
     auteur = models.ForeignKey(User, on_delete=models.PROTECT)
     code_payement = models.CharField(max_length=80, unique=True)
@@ -136,3 +156,11 @@ class Payement(models.Model):
 
     def __str__(self):
         return f"{self.code_payement}"
+
+    def total_encaisse_for_facture(self):
+        related_payments = Payement.objects.filter(facture=self.facture)
+        return related_payments.aggregate(Sum('mt_encaisse'))['mt_encaisse__sum'] or 0
+
+    class Meta:
+        verbose_name_plural = "GESTION DES PAYEMENTS"
+

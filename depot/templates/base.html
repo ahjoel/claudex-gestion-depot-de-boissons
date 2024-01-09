@@ -51,7 +51,7 @@
              {% with url_name=request.resolver_match.url_name %}
           <div class="left_col scroll-view">
             <div class="navbar nav_title" style="border: 0;">
-              <a href="{% url '/' %}" class="site_title"><i class="fa fa-paw"></i> <span>CLAUDEX</span></a>
+              <a href="{% url 'home' %}" class="site_title"><i class="fa fa-paw"></i> <span>CLAUDEX</span></a>
             </div>
 
             <div class="clearfix"></div>
@@ -76,7 +76,7 @@
                 <h3>Données de Base</h3>
                 <ul class="nav side-menu">
                   <li>
-                    <a href="{% url '/' %}" class="{% if url_name == '/' %} active {% endif %}"><i class="fa fa-home"></i> Accueil</a>
+                    <a href="{% url 'home' %}" class="{% if url_name == 'home' %} active {% endif %}"><i class="fa fa-home"></i> Accueil</a>
                   </li>
                   <li>
                     <a href="{% url 'model' %}" class="{% if url_name == 'model' or url_name == 'create-model' or url_name == 'update-model' %}active{% endif %}">
@@ -151,16 +151,16 @@
 
             <!-- /menu footer buttons -->
             <div class="sidebar-footer hidden-small">
-              <a data-toggle="tooltip" data-placement="top" title="Settings">
+              <a data-toggle="tooltip" data-placement="top" href="/admin" title="Interface ADMINISTRATION">
                 <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
               </a>
-              <a data-toggle="tooltip" data-placement="top" title="FullScreen">
-                <span class="glyphicon glyphicon-fullscreen" aria-hidden="true"></span>
+              <a>
+
               </a>
-              <a data-toggle="tooltip" data-placement="top" title="Lock">
-                <span class="glyphicon glyphicon-eye-close" aria-hidden="true"></span>
+              <a>
+
               </a>
-              <a data-toggle="tooltip" data-placement="top" title="Logout" href="login.html">
+              <a data-toggle="tooltip" data-placement="top" title="Déconnexion" href="/logout">
                 <span class="glyphicon glyphicon-off" aria-hidden="true"></span>
               </a>
             </div>
@@ -183,8 +183,14 @@
                     <img src="{% static 'depot/images/user.png' %}" alt="">{{user.username}}
                   </a>
                   <div class="dropdown-menu dropdown-usermenu pull-right" aria-labelledby="navbarDropdown">
-                    <a class="dropdown-item"  href="#"> Profile</a>
-                    <a class="dropdown-item"   href="/logout"><i class="fa fa-sign-out pull-right"></i> Déconnexion</a>
+                    {% with user_groups=request.user.groups.all %}
+                        {% if user_groups %}
+                            {% for group in user_groups %}
+                              <a class="dropdown-item"  href="#"> Profile {{group.name}}</a>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                      <a class="dropdown-item"   href="/logout"><i class="fa fa-sign-out pull-right"></i> Déconnexion</a>
                   </div>
                 </li>
                   {% endif %}

@@ -3,7 +3,7 @@ from . import views
 from .views import generate_facture_a_payer, generate_facture_payer
 
 urlpatterns = [
-    path('', views.home, name='/'),
+    path('', views.home, name='home'),
     path('model', views.gmodels, name='model'),
     path('create-model', views.create_gmodels, name='create-model'),
     path('update-model/<int:id>', views.update_gmodels, name='update-model'),
@@ -31,6 +31,8 @@ urlpatterns = [
     path('sortie', views.sorties, name='sortie'),
     path('create-sortie', views.create_sortie, name='create-sortie'),
     path('create-one-sortie/<int:id>', views.create_one_sortie, name='create-one-sortie'),
+    path('update-one-sortie/<int:id>', views.update_sortie_facture, name='update-one-sortie'),
+    path('delete-one-sortie/<int:id>', views.delete_sortie_facture, name='delete-one-sortie'),
     path('update-sortie/<int:id>', views.update_sortie, name='update-sortie'),
     path('delete-sortie/<int:id>', views.delete_sortie, name='delete-sortie'),
     path('ajax_load_qte/', views.load_qte_dispo, name='ajax_load_qte'),

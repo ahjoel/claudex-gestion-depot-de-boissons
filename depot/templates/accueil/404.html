@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% load static %}
+
+
+<div class="page-title">
+      <div class="title_left">
+        <h3>Erreur</h3>
+      </div>
+</div>
+
+<div class="clearfix"></div>
+
+<div class="row">
+  <div class="col-md-12 col-sm-12  ">
+    <div class="x_panel">
+      <div class="x_title">
+        <h2></h2>
+
+        <div class="clearfix"></div>
+      </div>
+      <div class="x_content">
+       <div class="emoji">😕</div>
+        <h1>Oops! Page Not Found</h1>
+        <p>Nous n'arrivons pas à trouver la page que vous demandez. Veuillez contacter votre administrateur</p>
+        <a class="btn btn-primary" href="/">Retour à l'acceuil</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

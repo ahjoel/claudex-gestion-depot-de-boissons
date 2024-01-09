@@ -7,7 +7,7 @@ from num2words import num2words
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum, ExpressionWrapper, F, DecimalField, Count
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login
 from django.views import View
@@ -15,7 +15,7 @@ from fpdf import FPDF
 
 from response import Response
 
-
+from .decorators import allowed_users
 from .forms import CustomAuthenticationForm, ModelBForm, ProducteurForm, ProduitForm, ClientForm, ModeRForm, \
     EntreeForm, SortieForm, FactureForm, PayementForm
 from .models import ModelB, Producteur, Produit, Client, ModeR, Mouvement, Facture, Payement
@@ -25,17 +25,20 @@ from .utils import render_to_pdf
 def custom_login(request):
     form = CustomAuthenticationForm()
     message = ""
-    if request.method == 'POST':
-        form = CustomAuthenticationForm(request.POST)
-        if form.is_valid():
-            username = form.cleaned_data['username']
-            password = form.cleaned_data['password']
-            user = authenticate(username=username, password=password)
-            if user is not None:
-                login(request, user)
-                return redirect("/")
-            else:
-                message = "Nom d'utilisateur ou mot de passe incorrectes"
+    if request.user.is_authenticated:
+        return HttpResponseRedirect('/')
+    else:
+        if request.method == 'POST':
+            form = CustomAuthenticationForm(request.POST)
+            if form.is_valid():
+                username = form.cleaned_data['username']
+                password = form.cleaned_data['password']
+                user = authenticate(username=username, password=password)
+                if user is not None:
+                    login(request, user)
+                    return redirect("/")
+                else:
+                    message = "Nom d'utilisateur ou mot de passe incorrectes"
 
     context = {
         'form': form, 'message': message
@@ -51,6 +54,7 @@ def home(request):
 
 
 @login_required(login_url="/connexion")
+@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR','CAISSIER', 'FACTURATION'])
 def gmodels(request):
     modelbs = ModelB.objects.filter(active=True).order_by('-id')
     context = {
@@ -60,6 +64,7 @@ def gmodels(request):
 
 
 @login_required(login_url="/connexion")
+@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR'])
 def create_gmodels(request):
     template_name = 'model/form.html'
     titre = "Enregistrement"
@@ -93,6 +98,7 @@ def create_gmodels(request):
 
 
 @login_required(login_url="/connexion")
+@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR'])
 def update_gmodels(request, id):
     titre = "Modification"
     modelb = get_object_or_404(ModelB, id=id)
@@ -121,6 +127,7 @@ def delete_gmodels(request, id):
 
 
 @login_required(login_url="/connexion")
+@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR','CAISSIER', 'FACTURATION'])
 def producteurs(request):
     producteurs = Producteur.objects.filter(active=True).order_by('-id')
     context = {
@@ -130,6 +137,7 @@ def producteurs(request):
 
 
 @login_required(login_url="/connexion")
+@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR'])
 def create_producteur(request):
     template_name = 'producteur/form.html'
     titre = "Enregistrement"
@@ -164,6 +172,7 @@ def create_producteur(request):
 
 
 @login_required(login_url="/connexion")
+@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR'])
 def update_producteur(request, id):
     titre = "Modification"
     producteur = get_object_or_404(Producteur, id=id)
@@ -178,6 +187,7 @@ def update_producteur(request, id):
 
 
 @login_required(login_url="/connexion")
+@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR'])
 def delete_producteur(request, id):
     producteur = get_object_or_404(Producteur, id=id)
 
@@ -193,6 +203,7 @@ def delete_producteur(request, id):
 
 
 @login_required(login_url="/connexion")
+@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR','CAISSIER', 'FACTURATION'])
 def produits(request):
     produits = Produit.objects.filter(active=True).order_by('-id')
     context = {
@@ -202,6 +213,7 @@ def produits(request):
 
 
 @login_required(login_url="/connexion")
+@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR'])
 def create_produit(request):
     template_name = 'produit/form.html'
     titre = "Enregistrement"
@@ -235,6 +247,7 @@ def create_produit(request):
 
 
 @login_required(login_url="/connexion")
+@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR'])
 def update_produit(request, id):
     titre = "Modification"
     produit = get_object_or_404(Produit, id=id)
@@ -249,6 +262,7 @@ def update_produit(request, id):
 
 
 @login_required(login_url="/connexion")
+@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR'])
 def delete_produit(request, id):
     produit = get_object_or_404(Produit, id=id)
 
@@ -263,6 +277,7 @@ def delete_produit(request, id):
 
 
 @login_required(login_url="/connexion")
+@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR','CAISSIER', 'FACTURATION'])
 def clients(request):
     clients = Client.objects.filter(active=True).order_by('-id')
     context = {
@@ -272,6 +287,7 @@ def clients(request):
 
 
 @login_required(login_url="/connexion")
+@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR'])
 def create_client(request):
     template_name = 'client/form.html'
     titre = "Enregistrement"
@@ -305,6 +321,7 @@ def create_client(request):
 
 
 @login_required(login_url="/connexion")
+@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR'])
 def update_client(request, id):
     titre = "Modification"
     client = get_object_or_404(Client, id=id)
@@ -319,6 +336,7 @@ def update_client(request, id):
 
 
 @login_required(login_url="/connexion")
+@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR'])
 def delete_client(request, id):
     client = get_object_or_404(Client, id=id)
 
@@ -333,6 +351,7 @@ def delete_client(request, id):
 
 
 @login_required(login_url="/connexion")
+@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR','CAISSIER', 'FACTURATION'])
 def moders(request):
     moders = ModeR.objects.filter(active=True).order_by('-id')
     context = {
@@ -342,6 +361,7 @@ def moders(request):
 
 
 @login_required(login_url="/connexion")
+@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR'])
 def create_moder(request):
     template_name = 'moder/form.html'
     titre = "Enregistrement"
@@ -375,6 +395,7 @@ def create_moder(request):
 
 
 @login_required(login_url="/connexion")
+@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR'])
 def update_moder(request, id):
     titre = "Modification"
     moder = get_object_or_404(ModeR, id=id)
@@ -389,6 +410,7 @@ def update_moder(request, id):
 
 
 @login_required(login_url="/connexion")
+@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR'])
 def delete_moder(request, id):
     moder = get_object_or_404(ModeR, id=id)
 
@@ -403,6 +425,7 @@ def delete_moder(request, id):
 
 
 @login_required(login_url="/connexion")
+@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR','CAISSIER', 'FACTURATION'])
 def entrees(request):
     entrees = Mouvement.objects.filter(active=True, type_op="ADD").order_by('-id')
     context = {
@@ -412,6 +435,7 @@ def entrees(request):
 
 
 @login_required(login_url="/connexion")
+@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR'])
 def create_entree(request):
     template_name = 'entree/form.html'
     titre = "Enregistrement"
@@ -442,6 +466,7 @@ def create_entree(request):
 
 
 @login_required(login_url="/connexion")
+@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR'])
 def update_entree(request, id):
     titre = "Modification"
     entree = get_object_or_404(Mouvement, id=id)
@@ -459,6 +484,7 @@ def update_entree(request, id):
 
 
 @login_required(login_url="/connexion")
+@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR'])
 def delete_entree(request, id):
     entree = get_object_or_404(Mouvement, id=id)
 
@@ -473,6 +499,7 @@ def delete_entree(request, id):
 
 
 @login_required(login_url="/connexion")
+@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR','CAISSIER', 'FACTURATION'])
 def sorties(request):
     #sorties = Mouvement.objects.filter(active=True, type_op="OUT").order_by('-id')
     sorties = Mouvement.objects.filter(active=True, type_op="OUT").order_by('-id').annotate(
@@ -485,6 +512,7 @@ def sorties(request):
 
 
 @login_required(login_url="/connexion")
+@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR', 'FACTURATION'])
 def create_sortie(request):
     template_name = 'sortie/form.html'
     titre = "Enregistrement"
@@ -513,7 +541,10 @@ def create_sortie(request):
         ttc = mt_ht + tva + remise
 
         if pdt:
-            fact = Facture.objects.create(code_facture=code_facture, date_facture=date_facture, client=Client.objects.get(pk=client), type_client=type_client, tva=tva, remise=remise, mt_ttc=ttc, auteur=request.user)
+            client_id = get_object_or_404(Client, id=client)
+            print('ok')
+            code_facture_reel = f"CLAUDEX-{annee}-{mois}/{client_id.code}/{id_max}"
+            fact = Facture.objects.create(code_facture=code_facture_reel, date_facture=date_facture, client=Client.objects.get(pk=client), type_client=type_client, tva=tva, remise=remise, mt_ttc=ttc, auteur=request.user)
             fact_id = fact.id
             for i in range(len(pdt)):
                 Mouvement.objects.create(auteur=request.user, facture=Facture.objects.get(pk=fact_id),
@@ -555,6 +586,7 @@ def load_qte_dispo(request):
 
 
 @login_required(login_url="/connexion")
+@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR', 'FACTURATION'])
 def create_one_sortie(request, id):
     template_name = 'sortie/form_add_produit_to_facture.html'
     titre = "Enregistrement"
@@ -588,6 +620,7 @@ def create_one_sortie(request, id):
     return render(request, template_name, context)
 
 @login_required(login_url="/connexion")
+@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR', 'FACTURATION'])
 def update_sortie(request, id):
     titre = "Modification"
     sortie = get_object_or_404(Mouvement, id=id)
@@ -607,6 +640,7 @@ def update_sortie(request, id):
     return render(request, 'sortie/form_edit.html', {'form': form, "titre": titre, "facture": facture})
 
 @login_required(login_url="/connexion")
+@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR'])
 def delete_sortie(request, id):
     sortie = get_object_or_404(Mouvement, id=id)
     facture = sortie.facture.id
@@ -623,10 +657,52 @@ def delete_sortie(request, id):
     else:
         messages.success(request, "Une erreur est survenue lors de l'opération.", extra_tags='custom-warning')
 
-    return redirect('/sortie')
+
+@login_required(login_url="/connexion")
+@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR','FACTURATION'])
+def update_sortie_facture(request, id):
+    titre = "Modification"
+    sortie = get_object_or_404(Mouvement, id=id)
+    form = SortieForm(request.POST or None, instance=sortie)
+    facture = sortie.facture.id
+    #print(facture)
+    if form.is_valid():
+        check_facture = Payement.objects.filter(facture_id=facture, active=True).exists()
+        if check_facture==False:
+            form.save()
+            messages.success(request, "Modification effectuée", extra_tags='custom-success')
+            return redirect(f"/detail-facture/{facture}")
+        else:
+            messages.warning(request, "Modification impossible, la facture est en cours de payement", extra_tags='custom-warning')
+            return redirect(f"/detail-facture/{facture}")
+
+    return render(request, 'sortie/form_edit.html', {'form': form, "titre": titre, "facture": facture})
 
 
 @login_required(login_url="/connexion")
+@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR'])
+def delete_sortie_facture(request, id):
+    sortie = get_object_or_404(Mouvement, id=id)
+    facture = sortie.facture.id
+
+    if sortie:
+        check_facture = Payement.objects.filter(facture_id=facture, active=True).exists()
+        if check_facture == False:
+            sortie.delete()
+            messages.success(request, "Suppression effectuée", extra_tags='custom-success')
+            return redirect(f"/detail-facture/{facture}")
+        else:
+            messages.warning(request, "Suppression impossible, la facture est en cours de payement",
+                             extra_tags='custom-warning')
+            return redirect(f"/detail-facture/{facture}")
+    else:
+        messages.success(request, "Une erreur est survenue lors de l'opération.", extra_tags='custom-warning')
+
+    return redirect(f"/detail-facture/{facture}")
+
+
+@login_required(login_url="/connexion")
+@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR', 'FACTURATION', 'CAISSIER'])
 def factures(request):
     factures = Facture.objects.filter(active=True).annotate(nombre_de_produits=Count('mouvement'))
     context = {
@@ -634,7 +710,9 @@ def factures(request):
     }
     return render(request, 'facture/facture.html', context)
 
+
 @login_required(login_url="/connexion")
+@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR','FACTURATION', 'CAISSIER'])
 def detail_facture(request, id):
     facture = get_object_or_404(Facture, id=id)
     mouvements = Mouvement.objects.filter(facture=facture, active=True).order_by('id')
@@ -654,7 +732,9 @@ def detail_facture(request, id):
     }
     return render(request, 'facture/detail.html', context)
 
+
 @login_required(login_url="/connexion")
+@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR','CAISSIER', 'FACTURATION'])
 def detail_facture_payee(request, id):
     # Payement
     info_payement = get_object_or_404(Payement, id=id)
@@ -685,6 +765,7 @@ def detail_facture_payee(request, id):
 
 
 @login_required(login_url="/connexion")
+@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR','FACTURATION'])
 def update_facture(request, id):
     titre = "Modification"
     facture = get_object_or_404(Facture, id=id)
@@ -712,7 +793,7 @@ class generate_facture_a_payer(View):
         montant_ht = sum(mouvement.produit.pv * mouvement.qte for mouvement in mouvements)
         montant_total = montant_ht - mt_tva
         montant_total_lettre = num2words(int(montant_total), lang="fr")
-
+        nombre_de_mouvements = Mouvement.objects.filter(facture=facture, active=True).order_by('id').count()
         data = {
             "facturateur": request.user,
             "facture": facture,
@@ -723,7 +804,11 @@ class generate_facture_a_payer(View):
             "montant_total": montant_total,
             "montant_total_lettre": montant_total_lettre,
         }
-        pdf = render_to_pdf('pdf/facture_a_payer.html', data)
+        if nombre_de_mouvements > 10:
+            pdf = render_to_pdf('pdf/facture_a_payer_unique.html', data)
+        else:
+            pdf = render_to_pdf('pdf/facture_a_payer.html', data)
+
         if pdf:
             response=HttpResponse(pdf, content_type='application/pdf')
             filename = "Facture_%s.pdf" %(data['facture'].code_facture)
@@ -731,6 +816,7 @@ class generate_facture_a_payer(View):
             response['Content-Disposition']=content
             return response
         return HttpResponse("Page Not Found")
+
 
 class generate_facture_payer(View):
     def get(self, request, id, *args, **kwargs):
@@ -750,6 +836,10 @@ class generate_facture_payer(View):
 
         montant_total_lettre = num2words(int(montant_total), lang="fr")
 
+        date_echeance = facture.date_facture + datetime.timedelta(days=7)
+
+        nombre_de_mouvements = Mouvement.objects.filter(facture=facture, active=True).order_by('id').count()
+
         data = {
             "facturateur": request.user,
             "facture": facture,
@@ -762,9 +852,14 @@ class generate_facture_payer(View):
             'info_payement': info_payement,
             'total_reglee_for_facture': total_reglee_for_facture,
             'montant_restant': montant_restant,
+            'date_echeance': date_echeance,
 
         }
-        pdf = render_to_pdf('pdf/facture_payer.html', data)
+        if nombre_de_mouvements > 10:
+            pdf = render_to_pdf('pdf/facture_payer_unique.html', data)
+        else:
+            pdf = render_to_pdf('pdf/facture_payer.html', data)
+
         if pdf:
             response=HttpResponse(pdf, content_type='application/pdf')
             filename = "Facture_Payer_%s.pdf" %(data['facture'].code_facture)
@@ -775,7 +870,9 @@ class generate_facture_payer(View):
 
 
 @login_required(login_url="/connexion")
+@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR','CAISSIER', 'FACTURATION'])
 def payements(request):
+    #payements = Payement.objects.filter(active=True).annotate(nombre_de_payements_facture=Count('facture'))
     payements = Payement.objects.filter(active=True).order_by('-id')
     context = {
         'payements': payements
@@ -784,6 +881,7 @@ def payements(request):
 
 
 @login_required(login_url="/connexion")
+@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR','CAISSIER'])
 def create_payement(request):
     template_name = 'payement/form.html'
     titre = "Enregistrement"
@@ -838,6 +936,7 @@ def load_mt_facture(request):
 
 
 @login_required(login_url="/connexion")
+@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR'])
 def delete_payement(request, id):
     payement = get_object_or_404(Payement, id=id)
 
@@ -851,6 +950,8 @@ def delete_payement(request, id):
     return redirect('/payement')
 
 
+@login_required(login_url="/connexion")
+@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR','CAISSIER', 'FACTURATION'])
 def detail_payement(request, id):
     facture = get_object_or_404(Payement, facture_id=id)
     mouvements = Mouvement.objects.filter(facture=facture, active=True).order_by('id')
@@ -869,3 +970,7 @@ def detail_payement(request, id):
         'tva': tva,
     }
     return render(request, 'facture/detail.html', context)
+
+
+def custom_404(request, exception):
+    return render(request, 'accueil/404.html', status=404)
