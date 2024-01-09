@@ -6,7 +6,7 @@ import num2words as num2words
 from num2words import num2words
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum, ExpressionWrapper, F, DecimalField, Count
+from django.db.models import Sum, ExpressionWrapper, F, DecimalField, Count, Case, When, Value, FloatField
 from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login
@@ -48,8 +48,70 @@ def custom_login(request):
 
 @login_required(login_url="/connexion")
 def home(request):
+    total_clt_count = Client.objects.filter(active=True).count()
+    total_pdt_count = Produit.objects.filter(active=True).count()
+    #produit_commande_bientot = LigneCommande.objects.filter(disponible=True, statut="LIVREE").count()
+    pdt_sortie_stock = Mouvement.objects.filter(active=True).order_by('-id')
+    facture_jour = Mouvement.objects.filter(active=True).order_by('-id')
+    facture_jour_payee = Mouvement.objects.filter(active=True).order_by('-id')
 
-    context = {}
+    # Somme des quantités entrantes
+    quantite_entrante = Mouvement.objects.filter(type_op='ADD', active=True).aggregate(quantite_entree=Sum('qte'))
+
+    # Somme des quantités sortantes
+    quantite_sortante = Mouvement.objects.filter(type_op='OUT', active=True).aggregate(quantite_sortie=Sum('qte'))
+
+    # Somme des quantités disponibles (entrantes - sortantes)
+    quantite_disponible = quantite_entrante['quantite_entree'] - quantite_sortante['quantite_sortie']
+
+    # Récupération des produits avec annotation pour la somme des quantités par produit
+    produits = Produit.objects.annotate(
+        somme_quantite_entree=Sum(Case(When(mouvement__type_op='ADD', then=F('mouvement__qte')), default=Value(0),
+                                       output_field=FloatField())),
+        somme_quantite_sortie=Sum(Case(When(mouvement__type_op='OUT', then=F('mouvement__qte')), default=Value(0),
+                                       output_field=FloatField())),
+        quantite_disponible=F('somme_quantite_entree') - F('somme_quantite_sortie')
+    )
+
+    # Comparaison avec le seuil
+    produits_avec_seuil = produits.filter(quantite_disponible__lte=F('seuil'))
+
+    mouvements = 0
+
+    ## Listing Stock Général et Vente
+    produits = Produit.objects.all()
+
+    # Liste pour stocker les résultats finaux
+    resultats_produits = []
+
+    for produit in produits:
+        # Annotation pour la somme des quantités entrantes
+        somme_quantite_entree = \
+        Mouvement.objects.filter(produit=produit, type_op='ADD', active=True).aggregate(somme_quantite_entree=Sum('qte'))[
+            'somme_quantite_entree'] or 0
+
+        # Annotation pour la somme des quantités sortantes
+        somme_quantite_sortie = \
+        Mouvement.objects.filter(produit=produit, type_op='OUT', active=True).aggregate(somme_quantite_sortie=Sum('qte'))[
+            'somme_quantite_sortie'] or 0
+
+        # Calcul du reste (entrant - sortant)
+        reste = somme_quantite_entree - somme_quantite_sortie
+
+        # Ajout des résultats pour chaque produit
+        resultats_produits.append({
+            'produit': produit,
+            'seuil': produit.seuil,
+            'somme_quantite_entree': somme_quantite_entree,
+            'somme_quantite_sortie': somme_quantite_sortie,
+            'reste': reste,
+        })
+
+    context = {
+        'total_clt_count': total_clt_count,
+        'total_pdt_count': total_pdt_count,
+        'resultats_produits': resultats_produits
+    }
     return render(request, 'accueil/accueil.html', context)
 
 
@@ -868,6 +930,54 @@ class generate_facture_payer(View):
             return response
         return HttpResponse("Page Not Found")
 
+
+class generate_stock_general_vente(View):
+    def get(self, request, *args, **kwargs):
+        produits = Produit.objects.all()
+
+        # Liste pour stocker les résultats finaux
+        resultats_produits = []
+
+        for produit in produits:
+            # Annotation pour la somme des quantités entrantes
+            somme_quantite_entree = \
+                Mouvement.objects.filter(produit=produit, type_op='ADD', active=True).aggregate(
+                    somme_quantite_entree=Sum('qte'))[
+                    'somme_quantite_entree'] or 0
+
+            # Annotation pour la somme des quantités sortantes
+            somme_quantite_sortie = \
+                Mouvement.objects.filter(produit=produit, type_op='OUT', active=True).aggregate(
+                    somme_quantite_sortie=Sum('qte'))[
+                    'somme_quantite_sortie'] or 0
+
+            # Calcul du reste (entrant - sortant)
+            reste = somme_quantite_entree - somme_quantite_sortie
+
+            # Ajout des résultats pour chaque produit
+            resultats_produits.append({
+                'produit': produit,
+                'seuil': produit.seuil,
+                'somme_quantite_entree': somme_quantite_entree,
+                'somme_quantite_sortie': somme_quantite_sortie,
+                'reste': reste,
+            })
+
+        data = {
+            "resultats_produits": resultats_produits,
+            'today': datetime.date.today().strftime("%d-%m-%Y"),
+
+        }
+
+        pdf = render_to_pdf('pdf/stock_general_vente.html', data)
+
+        if pdf:
+            response=HttpResponse(pdf, content_type='application/pdf')
+            filename = "Listing_Stock_General_Vente_%s.pdf" %(data['today'])
+            content = "inline; filename= %s" %(filename)
+            response['Content-Disposition']=content
+            return response
+        return HttpResponse("Page Not Found")
 
 @login_required(login_url="/connexion")
 @allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR','CAISSIER', 'FACTURATION'])

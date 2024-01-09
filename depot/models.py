@@ -68,6 +68,26 @@ class Produit(models.Model):
     def __str__(self):
         return f"{self.libelle}-{self.modelb}"
 
+    def somme_quantites(self):
+        # Annotation pour la somme des quantités entrantes
+        somme_quantite_entree = \
+        Mouvement.objects.filter(produit=self, type_op='ADD', active=True).aggregate(somme_quantite_entree=Sum('qte'))[
+            'somme_quantite_entree'] or 0
+
+        # Annotation pour la somme des quantités sortantes
+        somme_quantite_sortie = \
+        Mouvement.objects.filter(produit=self, type_op='OUT', active=True).aggregate(somme_quantite_sortie=Sum('qte'))[
+            'somme_quantite_sortie'] or 0
+
+        # Calcul du reste (entrant - sortant)
+        reste = somme_quantite_entree - somme_quantite_sortie
+
+        return {
+            'somme_quantite_entree': somme_quantite_entree,
+            'somme_quantite_sortie': somme_quantite_sortie,
+            'reste': reste,
+        }
+
     class Meta:
         verbose_name_plural = "GESTION DES PRODUITS"
 
