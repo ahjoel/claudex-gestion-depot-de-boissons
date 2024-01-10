@@ -3,6 +3,7 @@ import datetime
 import fpdf
 import inflect
 import num2words as num2words
+from django.db import models
 from num2words import num2words
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -50,33 +51,17 @@ def custom_login(request):
 def home(request):
     total_clt_count = Client.objects.filter(active=True).count()
     total_pdt_count = Produit.objects.filter(active=True).count()
-    #produit_commande_bientot = LigneCommande.objects.filter(disponible=True, statut="LIVREE").count()
-    pdt_sortie_stock = Mouvement.objects.filter(active=True).order_by('-id')
-    facture_jour = Mouvement.objects.filter(active=True).order_by('-id')
-    facture_jour_payee = Mouvement.objects.filter(active=True).order_by('-id')
 
-    # Somme des quantités entrantes
-    quantite_entrante = Mouvement.objects.filter(type_op='ADD', active=True).aggregate(quantite_entree=Sum('qte'))
+    aujourd_hui = datetime.date.today()
+    nombre_total_factures_aujourd_hui = Facture.objects.filter(date_facture=aujourd_hui).count()
 
-    # Somme des quantités sortantes
-    quantite_sortante = Mouvement.objects.filter(type_op='OUT', active=True).aggregate(quantite_sortie=Sum('qte'))
+    total_quantite_sortie_aujourd_hui = Mouvement.objects.filter(
+        date_creation__date=aujourd_hui,
+        type_op="OUT"
+    ).aggregate(total_quantite_sortie=models.Sum('qte'))['total_quantite_sortie']
 
-    # Somme des quantités disponibles (entrantes - sortantes)
-    quantite_disponible = quantite_entrante['quantite_entree'] - quantite_sortante['quantite_sortie']
-
-    # Récupération des produits avec annotation pour la somme des quantités par produit
-    produits = Produit.objects.annotate(
-        somme_quantite_entree=Sum(Case(When(mouvement__type_op='ADD', then=F('mouvement__qte')), default=Value(0),
-                                       output_field=FloatField())),
-        somme_quantite_sortie=Sum(Case(When(mouvement__type_op='OUT', then=F('mouvement__qte')), default=Value(0),
-                                       output_field=FloatField())),
-        quantite_disponible=F('somme_quantite_entree') - F('somme_quantite_sortie')
-    )
-
-    # Comparaison avec le seuil
-    produits_avec_seuil = produits.filter(quantite_disponible__lte=F('seuil'))
-
-    mouvements = 0
+    # Si le total est None (pas de mouvements de type "OUT" aujourd'hui), initialisez-le à 0
+    total_quantite_sortie_aujourd_hui = total_quantite_sortie_aujourd_hui or 0
 
     ## Listing Stock Général et Vente
     produits = Produit.objects.all()
@@ -107,10 +92,35 @@ def home(request):
             'reste': reste,
         })
 
+    # Liste pour stocker les produits dont le reste est inférieur ou égal au seuil
+    produits_en_seuil = []
+
+    # Parcourez tous les produits
+    for produit in produits:
+        # Obtenez la somme des quantités pour le produit actuel
+        somme_quantites = produit.somme_quantites()
+
+        # Vérifiez si le reste est inférieur ou égal au seuil
+        if somme_quantites['reste'] <= produit.seuil:
+            produits_en_seuil.append(produit)
+
+    # Obtenez le nombre total de produits en seuil
+    nombre_total_produits_en_seuil = len(produits_en_seuil)
+
+    # Filtrer les encaissements en fonction de la date de paiement à ce jour
+    encaissements_a_ce_jour = Payement.objects.filter(date_payement__lte=aujourd_hui, active=True)
+
+    # Calculer le montant total encaissé à ce jour
+    montant_total_encaisse_a_ce_jour = encaissements_a_ce_jour.aggregate(Sum('mt_encaisse'))['mt_encaisse__sum'] or 0
+
     context = {
         'total_clt_count': total_clt_count,
         'total_pdt_count': total_pdt_count,
-        'resultats_produits': resultats_produits
+        'resultats_produits': resultats_produits,
+        'nombre_total_produits_en_seuil': nombre_total_produits_en_seuil,
+        'nombre_total_factures_aujourd_hui': nombre_total_factures_aujourd_hui,
+        'total_quantite_sortie_aujourd_hui': total_quantite_sortie_aujourd_hui,
+        'montant_total_encaisse_a_ce_jour': montant_total_encaisse_a_ce_jour
     }
     return render(request, 'accueil/accueil.html', context)
 

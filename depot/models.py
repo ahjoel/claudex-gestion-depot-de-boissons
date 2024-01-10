@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import Sum
@@ -160,7 +162,6 @@ class Mouvement(models.Model):
         return self.produit.pv * self.qte
 
 
-
 class Payement(models.Model):
     auteur = models.ForeignKey(User, on_delete=models.PROTECT)
     code_payement = models.CharField(max_length=80, unique=True)
@@ -180,6 +181,18 @@ class Payement(models.Model):
     def total_encaisse_for_facture(self):
         related_payments = Payement.objects.filter(facture=self.facture)
         return related_payments.aggregate(Sum('mt_encaisse'))['mt_encaisse__sum'] or 0
+
+    def total_encaisse_for_facture_a_ce_jour(self):
+        # Obtenez la date actuelle
+        aujourd_hui = datetime.date.today()
+
+        # Filtrer les paiements en fonction de la date de paiement
+        paiements_a_ce_jour = self.facture.payement_set.filter(date_payement__date__lte=aujourd_hui, active=True)
+
+        # Calculer le montant total encaissé à ce jour
+        montant_total_encaisse_a_ce_jour = paiements_a_ce_jour.aggregate(Sum('mt_encaisse'))['mt_encaisse__sum'] or 0
+
+        return montant_total_encaisse_a_ce_jour
 
     class Meta:
         verbose_name_plural = "GESTION DES PAYEMENTS"
