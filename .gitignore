@@ -29,7 +29,6 @@ claudexb/dev_settings.py
 .Python
 
 develop-eggs/
-dist/
 downloads/
 eggs/
 .eggs/
