@@ -39,6 +39,10 @@
           .black-text {
                 color: black !important;
             }
+          .negative-result {
+            color: rgba(189, 40, 40, 0.98);
+            background-color: #ea7676;
+          }
       </style>
     <!-- Custom Theme Style -->
     <link href="{% static 'depot/build/css/custom.min.css' %}" rel="stylesheet">
@@ -76,10 +80,10 @@
                 <h3>Données de Base</h3>
                 <ul class="nav side-menu">
                   <li>
-                    <a href="{% url 'home' %}" class="{% if url_name == 'home' %} active {% endif %}"><i class="fa fa-home"></i> Accueil</a>
+                    <a href="{% url 'home' %}" class="{% if url == 'home' %} active {% endif %}"><i class="fa fa-home"></i> Accueil</a>
                   </li>
                   <li>
-                    <a href="{% url 'model' %}" class="{% if url_name == 'model' or url_name == 'create-model' or url_name == 'update-model' %}active{% endif %}">
+                    <a href="{% url 'model' %}" class="{% if url == 'model' or url == 'create-model' or url == 'update-model' %}active{% endif %}">
                         <i class="fa fa-bookmark"></i>Gestion des Models</a>
                   </li>
                   <li>
@@ -108,7 +112,7 @@
                         <i class="fa fa-arrow-circle-left"></i> Gestion du Stock Entrées</a>
                   </li>
                   <li>
-                    <a href="{% url 'sortie' %}" class="{% if url == 'sortie' or url == 'create-sortie' or url_name == 'update-sortie' %}active{% endif %}">
+                    <a href="{% url 'sortie' %}" class="{% if url == 'sortie' or url == 'create-sortie' or url == 'update-sortie' %}active{% endif %}">
                         <i class="fa fa-arrow-circle-right"></i> Gestion du Stock Sorties</a>
                   </li>
                 </ul>
@@ -130,10 +134,7 @@
                   <li><a><i class="fa fa-file-pdf-o"></i> Listings <span class="fa fa-chevron-down"></span></a>
                     <ul class="nav child_menu">
                       <li>
-                        <a><i class="fa fa-file"></i> Statistiques Ventes</a>
-                      </li>
-                      <li>
-                        <a><i class="fa fa-file"></i> Inventaire Stock Général</a>
+                        <a href="{% url 'statistique-vente-periode' %}" class="{% if url == 'facture' %}active{% endif %}"><i class="fa fa-file"></i> Statistiques Ventes</a>
                       </li>
                       <li>
                         <a><i class="fa fa-file"></i> Archivage Facture</a>
@@ -276,7 +277,7 @@
     <script src="{% static 'depot/vendors/datatables.net-responsive-bs/js/responsive.bootstrap.js' %}"></script>
     <script src="{% static 'depot/vendors/datatables.net-scroller/js/dataTables.scroller.min.js' %}"></script>
     <script src="{% static 'depot/vendors/jszip/dist/jszip.min.js' %}"></script>
-    <script src="{% static 'depot/vendors/pdfmake/build/pdfmake.min.js' %}s"></script>
+
     <script src="{% static 'depot/vendors/pdfmake/build/vfs_fonts.js' %}"></script>
     <script src="{% static 'depot/build/js/select2.min.js' %}"></script>
     <script>

@@ -70,12 +70,14 @@
                           <th>#</th>
                           <th>CODE</th>
                           <th>DATE PAYEMENT</th>
-                          <th>CLIENT</th>
                           <th>FACTURE</th>
                           <th>MONTANT TTC</th>
-                          <th>MONTANT ENCAISSE</th>
+                          <th>MOD. REG</th>
                           <th>MONTANT RESTANT</th>
+                          <th>MONTANT ENCAISSE</th>
                           <th>RELIQUAT</th>
+                          <th>ETAT</th>
+                          <th>CLIENT</th>
                           <th>ACTIONS</th>
                         </tr>
                       </thead>
@@ -85,12 +87,18 @@
                           <td>{{ forloop.counter }}</td>
                           <td><a href="{% url 'detail-payement' payement.id %}">{{ payement.code_payement }}</a></td>
                           <td>{{ payement.date_payement }}</td>
-                          <td>{{ payement.facture.client }}</td>
                           <td><a href="{% url 'detail-payement' payement.id %}">{{ payement.facture }}</a></td>
                           <td>{{ payement.facture.calcul_montant_total|intcomma }}</td>
-                          <td>{{ payement.mt_encaisse|intcomma }}</td>
+                          <td>{{ payement.moder }}</td>
                           <td>{{ payement.mt_restant|intcomma }}</td>
+                          <td>{{ payement.mt_encaisse_jour|intcomma }}</td>
                           <td>{{ payement.reliquat|intcomma }}</td>
+                            {% if payement.mt_restant == 0 %}
+                          <td>FACT. REGLEE</td>
+                            {% else %}
+                          <td>FACT. IMP</td>
+                            {% endif %}
+                          <td><a href="{% url 'client' %}">{{ payement.facture.client }}</a></td>
                           <td class="text-center">
                                 <div>
                                     <div class="btn-group">

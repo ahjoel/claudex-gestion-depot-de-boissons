@@ -57,11 +57,22 @@
                         Date Facture
                         <div class="form-group">
                             <div class='input-group'>
-                                <input type="date" name="date_facture" class="form-control" required="True" id="id_date_facture">
+                                <input type="date" readonly="true" value="{{today}}" name="date_facture" class="form-control" required="True" id="id_date_facture">
                             </div>
                         </div>
                     </div>
-                     <div class='col-sm-3'>
+                    <div class='col-sm-1'>
+                        Type Client
+                        <div class="form-group">
+                            <div class='input-group'>
+                                  <select id="choix" class="form-control"  onchange="afficherInput()">
+                                    <option value="dipi">DIPI</option>
+                                    <option value="divers">DIVERS</option>
+                                  </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='col-sm-3' id="client">
                         Client
                         <div class="form-group">
                             <div class='input-group'>
@@ -69,11 +80,12 @@
                             </div>
                         </div>
                     </div>
-                    <div class='col-sm-2'>
-                        Type Client
+                     <div class='col-sm-3' id="inputNouveauClient" style="display: none;">
+                        Nouveau Client
                         <div class="form-group">
                             <div class='input-group'>
-                                {{ form1.type_client }}
+                               <input type="text" id="id_client_code" placeholder="Code Client" name="nouveau_client_code" class="form-control">
+                               <input type="text" id="id_client" placeholder="Nom Client" name="nouveau_client" class="form-control">
                             </div>
                         </div>
                     </div>
@@ -359,4 +371,20 @@
 
     });
 </script>
+<script>
+    function afficherInput() {
+      var choixSelect = document.getElementById("choix");
+      var inputNouveauClient = document.getElementById("inputNouveauClient");
+      var id_client = document.getElementById("id_client");
+      var id_client_clode = document.getElementById("id_client_code");
+
+      if (choixSelect.value === "divers") {
+        inputNouveauClient.style.display = "block";
+      } else {
+        inputNouveauClient.style.display = "none";
+        id_client.value = ""; // Réinitialiser la valeur si nécessaire
+        id_client_clode.value = "";
+      }
+    }
+  </script>
 {% endblock %}

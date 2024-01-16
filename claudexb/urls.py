@@ -25,3 +25,4 @@ urlpatterns = [
 ]
 urlpatterns += staticfiles_urlpatterns()
 handler404 = 'depot.views.custom_404'
+handler500 = 'depot.views.custom_500'

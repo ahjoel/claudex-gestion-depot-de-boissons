@@ -148,6 +148,22 @@
           <div class="row">
             <!-- accepted payments column -->
             <!-- /.col -->
+
+              <div class="col-md-3">
+              <p class="lead">Récapitualtif Facture</p>
+              <div class="table-responsive">
+                <table class="table">
+                  <tbody>
+                  {% for type_produit, count in recap_types_facture.items %}
+                    <tr>
+                      <td>{{type_produit}} - {{count}} U </td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
             <div class="col-md-3">
               <p class="lead">Facture A Payer le {{facture.date_facture}}</p>
               <div class="table-responsive">
@@ -182,6 +198,10 @@
                     <tr>
                       <th style="width:50%">Total Regle:</th>
                       <td>{{total_reglee_for_facture|intcomma}} F CFA</td>
+                    </tr>
+                    <tr>
+                      <th>Montant Reçue </th>
+                      <td>{{info_payement.mt_encaisse|intcomma}} </td>
                     </tr>
                     <tr>
                       <th>Reliquat </th>

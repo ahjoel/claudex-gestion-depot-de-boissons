@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% load static %}
+{% load humanize %}
+<div class="page-title" xmlns="http://www.w3.org/1999/html">
+      <div class="title_left">
+        <h3>Statistiques Ventes</h3>
+      </div>
+
+    <div class="title_right">
+        <div class="col-md-5 col-sm-5  form-group pull-right top_search">
+            <div class="filter">
+                 <form method="POST" autocomplete="off">
+                 {% csrf_token %}
+                  <div class="pull-right">
+                    Date fin
+                       <input type="date" value="{{end_date}}" name="end_date" class="form-control" required="True" id="id_end_date">
+                  </div>
+
+                  <div class="pull-right" style="margin-left: -25px">
+                    Date debut
+                      <input type="date" value="{{start_date}}" name="start_date" class="form-control" required="True" id="id_start_date">
+                       <span><button type="submit" class="btn btn-success btn-sm"><i class="fa fa-search"></i></button></span>
+                  </div>
+                 </form>
+            </div>
+
+        </div>
+    </div>
+ </div>
+
+<div class="clearfix"></div>
+
+<div class="row">
+      <div class="col-md-12 col-sm-12 ">
+        <div class="x_panel">
+          <div class="x_title">
+            <h2>Liste des Ventes</h2>
+
+
+
+            <div class="text-right mt-8" style="margin-right: 15px">
+                <a href="{% url 'statistique-vente-periode' start_date end_date %}" target="_blank" class="btn btn-info btn-sm"><i class="fa fa-file-pdf-o"></i> Télécharger Statistique</a>
+                <a href="{% url 'statistique-vente-periode-mensuelle' %}" target="_blank" class="btn btn-info btn-sm"><i class="fa fa-file-pdf-o"></i> Télécharger Statistique Menuselle</a>
+            </div>
+
+            <div class="clearfix"></div>
+          </div>
+          <div class="x_content">
+              <div class="row">
+                <div class="col-sm-12">
+                  <div class="card-box table-responsive">
+
+                    {% if factures_sommes|length > 0 %}
+                    <table id="datatable-responsive" class="table table-striped table-bordered dt-responsive nowrap" cellspacing="0" width="100%">
+                      <thead>
+                        <tr>
+                          <th>#</th>
+                          <th>CODE</th>
+                          <th>DATE FACTURE</th>
+                          <th>CLIENT</th>
+                          <th>FACTURE</th>
+                          <th>MONTANT TTC</th>
+                          <th>TOTAL ENCAISSE</th>
+                          <th>MONTANT RESTANT</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                      {% for facture_id, values in factures_sommes.items %}
+                        <tr>
+                          <td>{{ forloop.counter }}</td>
+                          <td>{{ values.facture }}</td>
+                          <td>{{ values.date_facture }}</td>
+                          <td>{{ values.client }}</td>
+                          <td><a href="{% url 'detail-payement' values.payement_id %}">{{ values.code_facture }}</a></td>
+                          <td>{{ values.montant_facture|intcomma }}</td>
+                          <td>{{ values.montant_encaisse|intcomma }}</td>
+                          <td>{{ values.montant_restant|intcomma }}</td>
+                        </tr>
+                      {% endfor %}
+                      </tbody>
+                        <tfoot>
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>Total Facture {{total_montant_factures|intcomma}}</td>
+                                <td>Total Encaisse {{total_montant_encaisses|intcomma}}</td>
+                                <td>Total Restant {{total_montant_restants|intcomma}}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                    {% else %}
+                        <p>Aucun enregistrement disponible :-)</p>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+          </div>
+        </div>
+      </div>
+   </div>
+{% endblock %}

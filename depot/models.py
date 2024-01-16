@@ -1,8 +1,10 @@
-from datetime import datetime
+from collections import Counter
+from datetime import datetime, date
 
 from django.contrib.auth.models import User
 from django.db import models
-from django.db.models import Sum
+from django.db.models import Sum, F
+from django.db.models.functions import TruncMonth
 
 
 # Create your models here.
@@ -98,9 +100,9 @@ class Client(models.Model):
     auteur = models.ForeignKey(User, on_delete=models.PROTECT)
     code = models.CharField(max_length=20, blank=False, null=False, unique=True)
     rs = models.CharField(max_length=80, blank=False, null=False)
-    ville = models.CharField(max_length=30, blank=False, null=False)
-    tel = models.CharField(max_length=30, blank=False, null=False)
-    mail = models.EmailField(max_length=40, blank=False, null=False)
+    ville = models.CharField(max_length=30, blank=True, null=True)
+    tel = models.CharField(max_length=30, blank=True, null=True)
+    mail = models.EmailField(max_length=40, blank=True, null=True)
 
     active = models.BooleanField(default=True)
     date_creation = models.DateTimeField(auto_now_add=True)
@@ -112,13 +114,25 @@ class Client(models.Model):
     class Meta:
         verbose_name_plural = "GESTION DES CLIENTS"
 
+    def montant_factures_impayees(self):
+        # Récupérer toutes les factures associées à ce client
+        factures = self.facture_set.filter(active=True)
+
+        # Initialiser la somme totale des factures impayées
+        montant_impaye_total = 0
+
+        # Parcourir toutes les factures et ajouter le montant impayé
+        for facture in factures:
+            montant_impaye_total += facture.montant_restant()
+
+        return montant_impaye_total
+
 
 class Facture(models.Model):
     auteur = models.ForeignKey(User, on_delete=models.PROTECT)
     code_facture = models.CharField(max_length=80, unique=True)
     date_facture = models.DateField()
     client = models.ForeignKey(Client, on_delete=models.PROTECT)
-    type_client = models.CharField(max_length=30, blank=True, null=True)
     remise = models.IntegerField(default=0)
     tva = models.IntegerField(default=0)
     mt_ttc = models.IntegerField(default=0)
@@ -141,7 +155,71 @@ class Facture(models.Model):
         montant_ttc = montant_ht * (1 + self.tva) + (-1 * self.remise)
         self.mt_ttc = montant_ttc
         self.save()
-        return montant_ttc
+        return montant_ttc or 0
+
+    def montant_restant(self):
+        # Calcule le montant restant en soustrayant le montant encaissé de la somme totale
+        montant_encaisse = sum(paiement.mt_encaisse for paiement in self.payement_set.filter(active=True))
+        montant_restant = self.calcul_montant_total() - montant_encaisse
+
+        # Vérifie si la date de la facture dépasse 7 jours
+        jours_diff = (date.today() - self.date_facture).days
+        if jours_diff > 7:
+            # Applique une pénalité de 0.2% au montant restant
+            penalite = 0.002  # 0.2%
+            montant_restant += montant_restant * penalite
+
+        self.montant_restant = montant_restant
+        self.save()
+        return montant_restant
+
+    def recap_types_produits(self):
+        # Récupérer tous les mouvements associés à cette facture
+        mouvements = self.mouvement_set.filter(active=True)
+
+        # Créer un récapitulatif des types de produits avec le producteur associé
+        recap_types = Counter(
+            (mouvement.produit.producteur.libelle, mouvement.produit.modelb.libelle)
+            for mouvement in mouvements
+        )
+
+        return dict(recap_types)
+
+    # Test - Statisque Mensuelle
+    def montant_total_encaisse(self):
+        return Payement.objects.filter(facture=self, active=True).aggregate(Sum('mt_encaisse'))['mt_encaisse__sum'] or 0
+
+    @classmethod
+    def montant_total_factures_par_mois(cls):
+        result = cls.objects.filter(active=True).values('date_facture__year', 'date_facture__month').annotate(
+            Sum('mt_ttc'))
+        return [{'mois': f"{item['date_facture__year']}-{item['date_facture__month']:02}",
+                 'montant_total': item['mt_ttc__sum'] or 0} for item in result]
+
+    @classmethod
+    def montant_total_encaisse_par_mois(cls):
+        result = cls.objects.filter(active=True).values('date_facture__year', 'date_facture__month').annotate(
+            Sum('payement__mt_encaisse'))
+        return [{'mois': f"{item['date_facture__year']}-{item['date_facture__month']:02}",
+                 'montant_encaisse': item['payement__mt_encaisse__sum'] or 0} for item in result]
+
+    @classmethod
+    def montant_total_restant_par_mois(cls):
+        factures_par_mois = cls.montant_total_factures_par_mois()
+        encaisse_par_mois = cls.montant_total_encaisse_par_mois()
+        montant_restant_par_mois = []
+
+        for facture in factures_par_mois:
+            mois = facture['mois']
+            montant_total = facture['montant_total']
+            montant_encaisse = next((x['montant_encaisse'] for x in encaisse_par_mois if x['mois'] == mois), 0)
+            montant_restant = montant_total - montant_encaisse
+
+            montant_restant_par_mois.append({'mois': mois, 'montant_restant': montant_restant})
+
+        return montant_restant_par_mois
+    # End Test
+
 
 
 class Mouvement(models.Model):
@@ -164,11 +242,13 @@ class Mouvement(models.Model):
 
 class Payement(models.Model):
     auteur = models.ForeignKey(User, on_delete=models.PROTECT)
-    code_payement = models.CharField(max_length=80, unique=True)
+    code_payement = models.CharField(max_length=100, unique=True)
+    moder = models.ForeignKey(ModeR, on_delete=models.PROTECT, default=1)
     date_payement = models.DateField()
     facture = models.ForeignKey(Facture, on_delete=models.PROTECT)
     mt_encaisse = models.IntegerField(default=0)
     mt_restant = models.IntegerField(default=0)
+    mt_encaisse_jour = models.IntegerField(default=0)
     reliquat = models.IntegerField(default=0)
 
     active = models.BooleanField(default=True)
@@ -194,6 +274,12 @@ class Payement(models.Model):
 
         return montant_total_encaisse_a_ce_jour
 
+    # important
+    @classmethod
+    def paiements_pour_periode(cls, debut_periode, fin_periode):
+        return cls.objects.filter(date_payement__range=[debut_periode, fin_periode], active=True)
+
     class Meta:
         verbose_name_plural = "GESTION DES PAYEMENTS"
+
 

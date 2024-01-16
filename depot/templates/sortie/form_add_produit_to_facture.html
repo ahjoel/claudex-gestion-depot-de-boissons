@@ -56,20 +56,20 @@
             </div>
             <div class="x_content">
                 <br />
-                <form method="POST" action="{% url 'create-one-sortie' fact_id %}" autocomplete="off" class="form-horizontal form-label-left">
+                <form method="POST" action="{% url 'create-one-sortie' fact_id %}" id="sortieOneForm"  data-qte-url="{% url 'ajax_load_qte' %}" autocomplete="off" class="form-horizontal form-label-left">
                     {% csrf_token %}
                     <div class="item form-group">
-                        <label class="col-form-label col-md-3 col-sm-3 label-align" for="facture">Facture <span class="required">*</span>
-                        </label>
-                        <div class="col-md-6 col-sm-6 ">
-                            {{ form.facture }}
-                        </div>
-                    </div>
-                    <div class="item form-group">
-                        <label class="col-form-label col-md-3 col-sm-3 label-align" for="facture">Produit <span class="required">*</span>
+                        <label class="col-form-label col-md-3 col-sm-3 label-align">Produit <span class="required">*</span>
                         </label>
                         <div class="col-md-6 col-sm-6 ">
                             {{ form.produit }}
+                        </div>
+                    </div>
+                    <div class="item form-group">
+                        <label class="col-form-label col-md-3 col-sm-3 label-align">Qte Disponible <span class="required">*</span>
+                        </label>
+                        <div class="col-md-6 col-sm-6 ">
+                            <input type="number" name="qteDispo" id="qteDispo" class="form-control" readonly="True">
                         </div>
                     </div>
                    <div class="item form-group">
@@ -108,6 +108,25 @@
 
         });
         $('#id_facture').next().find('.select2-selection__rendered').addClass('black-text');
+    });
+</script>
+
+<script>
+    $("#pdtAdder").change(function () {
+      var urlqte = $("#sortieOneForm").attr("data-qte-url");
+      var produitId = $('#pdtAdder').val();
+
+      $.ajax({
+        url: urlqte,
+        data: {
+          'pdt_id': produitId
+        },
+        success: function (data) {
+          $("#qteDispo").html(data[0]);
+          document.getElementById("qteDispo").value = data[0]
+        }
+      });
+
     });
 </script>
 {% endblock %}

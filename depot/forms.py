@@ -1,5 +1,5 @@
-from datetime import datetime
 
+import datetime
 from django import forms
 from django.contrib.auth.models import User
 from django.forms import ModelChoiceField
@@ -95,27 +95,16 @@ class MenuModelChoiceField1(ModelChoiceField):
 
 
 class FactureForm(forms.ModelForm):
-    NULL = ''
-    DIPI = 'DIPI'
-    DIVERS = 'DIVERS'
-    TOUS = 'TOUS'
-    CHOIX = [
-        (NULL, ''),
-        (DIPI, 'DIPI'),
-        (DIVERS, 'DIVERS'),
-        (TOUS, 'TOUS'),
-    ]
     code_facture = forms.CharField(required=True, max_length=50, widget=forms.TextInput(attrs={'class': 'form-control'}))
-    date_facture = forms.DateField(widget=forms.DateInput(attrs={'class': 'form-control'}))
+    date_facture = forms.DateField(widget=forms.DateInput(attrs={'class': 'form-control', 'readonly': 'true'}))
     client = forms.ModelChoiceField(queryset=Client.objects.filter(active=True).order_by('-id'),
-                                    required=True, widget=forms.Select(attrs={'class': 'form-control'}))
-    type_client = forms.ChoiceField(choices=CHOIX, required=True, widget=forms.Select(attrs={'class': 'form-control'}))
+                                    required=False, widget=forms.Select(attrs={'class': 'form-control'}))
     remise = forms.IntegerField(required=True, initial=0, widget=forms.TextInput(attrs={'class': 'form-control'}))
     tva = forms.IntegerField(required=True, initial=0, widget=forms.TextInput(attrs={'class': 'form-control'}))
 
     class Meta:
         model = Facture
-        fields = ['code_facture', 'date_facture', 'client', 'type_client', 'remise', 'tva']
+        fields = ['code_facture', 'date_facture', 'remise', 'tva']
 
 
 class SortieForm(forms.ModelForm):
@@ -130,6 +119,16 @@ class SortieForm(forms.ModelForm):
         fields = ['produit', 'qte', 'facture']
 
 
+class SortieOneForm(forms.ModelForm):
+    produit = MenuModelChoiceField(queryset=Produit.objects.filter(active=True).order_by('-id'),
+                                    required=True, widget=forms.Select(attrs={'class': 'form-control', 'id': 'pdtAdder', 'name': 'pdtAdder', 'autofocus': 'true'}))
+    qte = forms.FloatField(required=True, widget=forms.TextInput(attrs={'class': 'form-control', 'autocomplete': 'off', 'id': 'qteAdder', 'name': 'qte'}))
+
+    class Meta:
+        model = Mouvement
+        fields = ['produit', 'qte']
+
+
 class RealisationPayement(forms.ModelForm):
     facture = forms.ModelChoiceField(queryset=Facture.objects.filter(active=True).order_by('-id'),
                                     required=False, widget=forms.Select(attrs={'class': 'form-control'}))
@@ -140,15 +139,25 @@ class RealisationPayement(forms.ModelForm):
 
 
 class PayementForm(forms.ModelForm):
-    code_payement = forms.CharField(required=True, max_length=50,
-                                   widget=forms.TextInput(attrs={'class': 'form-control','autofocus': 'true', 'autocomplete': 'off'}))
     facture = MenuModelChoiceField1(queryset=Facture.objects.filter(active=True).order_by('-id'),
-                                    required=False, widget=forms.Select(attrs={'class': 'form-control'}))
+                                    required=True, widget=forms.Select(attrs={'class': 'form-control'}))
+    date_payement = forms.DateField(initial=datetime.date.today().strftime("%Y-%m-%d"), widget=forms.DateInput(attrs={'class': 'form-control', 'readonly': 'true'}))
+    moder = forms.ModelChoiceField(queryset=ModeR.objects.filter(active=True).order_by('-id'),
+                                     required=True, widget=forms.Select(attrs={'class': 'form-control'}))
     # mt_facture = forms.IntegerField(required=True, initial=0, widget=forms.TextInput(attrs={'class': 'form-control', 'autocomplete': 'off', 'readonly':'on'}))
     # mt_reglee = forms.IntegerField(required=True, initial=0, widget=forms.TextInput(attrs={'class': 'form-control', 'autocomplete': 'off', 'readonly':'on'}))
-    mt_encaisse = forms.IntegerField(required=True, initial=0, widget=forms.TextInput(attrs={'class': 'form-control', 'autocomplete': 'off'}))
+    mt_encaisse_jour = forms.IntegerField(required=True, initial=0, widget=forms.TextInput(attrs={'class': 'form-control', 'autocomplete': 'off'}))
     reliquat = forms.IntegerField(required=True, initial=0, widget=forms.TextInput(attrs={'class': 'form-control', 'autocomplete': 'off'}))
 
     class Meta:
         model = Payement
-        fields = ['date_payement', 'code_payement', 'facture', 'mt_encaisse', 'reliquat']
+        fields = ['date_payement', 'moder', 'facture', 'mt_encaisse_jour', 'reliquat']
+
+    #def __init__(self, *args, **kwargs):
+    #    super(PayementForm, self).__init__(*args, **kwargs)
+    #    self.fields['date_payement'].initial = datetime.date.today().strftime("%Y-%m-%d")
+
+
+class StatistiqueForm(forms.Form):
+    start_date = forms.DateField(initial=datetime.date.today().strftime("%Y-%m-%d"), widget=forms.DateInput(attrs={'class': 'form-control'}))
+    end_date = forms.DateField(initial=datetime.date.today().strftime("%Y-%m-%d"), widget=forms.DateInput(attrs={'class': 'form-control'}))

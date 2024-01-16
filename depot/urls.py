@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from .views import generate_facture_a_payer, generate_facture_payer, generate_stock_general_vente
+from .views import generate_facture_a_payer, generate_facture_payer, generate_stock_general_vente, statistique_vente_periode, statistique_vente_periode_mensuelle
 
 urlpatterns = [
     path('', views.home, name='home'),
@@ -47,5 +47,8 @@ urlpatterns = [
     path('create-payement', views.create_payement, name='create-payement'),
     path('delete-payement/<int:id>', views.delete_payement, name='delete-payement'),
     path('detail-payement/<int:id>', views.detail_facture_payee, name='detail-payement'),
+    path('statistique-vente-periode/', views.statistique_ventes, name='statistique-vente-periode'),
+    path('statistique-vente-periode/<start_date>/<end_date>', statistique_vente_periode.as_view(), name='statistique-vente-periode'),
+    path('statistique-vente-periode-mensuelle', statistique_vente_periode_mensuelle.as_view(), name='statistique-vente-periode-mensuelle'),
     path('connexion', views.custom_login, name='connexion'),
 ]

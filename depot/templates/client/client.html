@@ -2,7 +2,7 @@
 
 {% block content %}
 {% load static %}
-
+{% load humanize %}
  <div class="page-title">
       <div class="title_left">
         <h3>Gestion des Clients</h3>
@@ -73,6 +73,7 @@
                           <th>VILLE</th>
                           <th>TELEPHONE</th>
                           <th>MAIL</th>
+                          <th>FACT. IMP</th>
                           <th>ACTIONS</th>
                         </tr>
                       </thead>
@@ -85,6 +86,7 @@
                           <td>{{ client.ville }}</td>
                           <td>{{ client.tel }}</td>
                           <td>{{ client.mail }}</td>
+                          <td>{{ client.montant_factures_impayees|intcomma }}</td>
                           <td class="text-center">
                                 <div>
                                     <div class="btn-group">
