@@ -873,8 +873,6 @@ def update_facture(request, id):
         else:
             messages.warning(request, "Modification impossible, la facture a déja un reglement",
                              extra_tags='custom-warning')
-    else:
-        messages.warning(request, "Erreur veuillez remplir correctement tous les champs", extra_tags='custom-warning')
 
     return render(request, 'facture/form_facture.html', {'form': form, "titre": titre})
 

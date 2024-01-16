@@ -59,42 +59,35 @@
                 <form method="POST" class="form-horizontal form-label-left">
                     {% csrf_token %}
                     <div class="item form-group">
-                        <label class="col-form-label col-md-3 col-sm-3 label-align" for="code_facture">Code Facture <span class="required">*</span>
+                        <label class="col-form-label col-md-3 col-sm-3 label-align">Code Facture <span class="required">*</span>
                         </label>
                         <div class="col-md-6 col-sm-6 ">
                             {{ form.code_facture }}
                         </div>
                     </div>
                     <div class="item form-group">
-                        <label class="col-form-label col-md-3 col-sm-3 label-align" for="date_facture">Date Facture <span class="required">*</span>
+                        <label class="col-form-label col-md-3 col-sm-3 label-align">Date Facture <span class="required">*</span>
                         </label>
                         <div class="col-md-6 col-sm-6 ">
                             {{ form.date_facture }}
                         </div>
                     </div>
                    <div class="item form-group">
-                        <label class="col-form-label col-md-3 col-sm-3 label-align" for="client">Client <span class="required">*</span>
+                        <label class="col-form-label col-md-3 col-sm-3 label-align">Client <span class="required">*</span>
                         </label>
                         <div class="col-md-6 col-sm-6 ">
                             {{ form.client }}
                         </div>
                     </div>
                     <div class="item form-group">
-                        <label class="col-form-label col-md-3 col-sm-3 label-align" for="type_client">Type Client <span class="required">*</span>
-                        </label>
-                        <div class="col-md-6 col-sm-6 ">
-                            {{ form.type_client }}
-                        </div>
-                    </div>
-                    <div class="item form-group">
-                        <label class="col-form-label col-md-3 col-sm-3 label-align" for="tva">TVA <span class="required">*</span>
+                        <label class="col-form-label col-md-3 col-sm-3 label-align">TVA <span class="required">*</span>
                         </label>
                         <div class="col-md-6 col-sm-6 ">
                             {{ form.tva }}
                         </div>
                     </div>
                     <div class="item form-group">
-                        <label class="col-form-label col-md-3 col-sm-3 label-align" for="remise">Remise <span class="required">*</span>
+                        <label class="col-form-label col-md-3 col-sm-3 label-align">Remise <span class="required">*</span>
                         </label>
                         <div class="col-md-6 col-sm-6 ">
                             {{ form.remise }}
