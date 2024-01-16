@@ -59,17 +59,17 @@
                 <form method="POST" autocomplete="off" id="payementForm"  data-mt-url="{% url 'ajax_load_mt_fact' %}" class="form-horizontal form-label-left">
                     {% csrf_token %}
                     <div class="item form-group">
-                        <label class="col-form-label col-md-3 col-sm-3 label-align" for="id_code_payement">Code Payement <span class="required">*</span>
+                        <label class="col-form-label col-md-3 col-sm-3 label-align" for="id_code_payement">Mode Reglement <span class="required">*</span>
                         </label>
                         <div class="col-md-6 col-sm-6 ">
-                            {{ form.code_payement }}
+                            {{ form.moder }}
                         </div>
                     </div>
                     <div class="item form-group">
                         <label class="col-form-label col-md-3 col-sm-3 label-align" for="id_date_payement">Date Payement <span class="required">*</span>
                         </label>
                         <div class="col-md-6 col-sm-6 ">
-                            <input type="date" name="date_payement" class="form-control" required="True" id="id_date_payement">
+                           {{ form.date_payement }}
                         </div>
                     </div>
                     <div class="item form-group">
@@ -80,24 +80,31 @@
                         </div>
                     </div>
                    <div class="item form-group">
-                        <label class="col-form-label col-md-3 col-sm-3 label-align" for="modelb">Montant Facture <span class="required">*</span>
+                        <label class="col-form-label col-md-3 col-sm-3 label-align" for="id_mt_facture">Montant Facture <span class="required">*</span>
                         </label>
                         <div class="col-md-6 col-sm-6 ">
                             <input type="number" name="mt_facture" id="id_mt_facture" class="form-control" readonly="True">
                         </div>
                     </div>
                     <div class="item form-group">
-                        <label class="col-form-label col-md-3 col-sm-3 label-align" for="modelb">Montant Encaisse <span class="required">*</span>
+                        <label class="col-form-label col-md-3 col-sm-3 label-align" for="id_mt_facture">Montant Restant Facture <span class="required">*</span>
                         </label>
                         <div class="col-md-6 col-sm-6 ">
-                            {{ form.mt_encaisse }}
+                            <input type="number" name="mt_restant_facture" oninput="calculateResult()" id="id_mt_restant_facture" class="form-control" readonly="True">
                         </div>
                     </div>
                     <div class="item form-group">
-                        <label class="col-form-label col-md-3 col-sm-3 label-align" for="producteur">Reliquat <span class="required">*</span>
+                        <label class="col-form-label col-md-3 col-sm-3 label-align" for="id_mt_encaisse_jour">Montant Encaisse <span class="required">*</span>
                         </label>
                         <div class="col-md-6 col-sm-6 ">
-                            {{ form.reliquat }}
+                            <input type="number" name="mt_encaisse_jour" oninput="calculateResult()" id="id_mt_encaisse_jour" required="True" class="form-control">
+                        </div>
+                    </div>
+                    <div class="item form-group">
+                        <label class="col-form-label col-md-3 col-sm-3 label-align" for="id_reliquat">Reliquat <span class="required">*</span>
+                        </label>
+                        <div class="col-md-6 col-sm-6 ">
+                            <input type="number" readonly="true"  name="reliquat" class="form-control" required="True" id="id_reliquat">
                         </div>
                     </div>
 
@@ -109,7 +116,6 @@
                             <button type="submit" onclick="return confirm('Voulez vous réelement ajouter ce payement ?')" class="btn btn-success btn-sm">Sauvegarder</button>
                         </div>
                     </div>
-
                 </form>
             </div>
         </div>
@@ -140,9 +146,29 @@
         success: function (data) {
           $("#mt_ht").html(data[0]);
           document.getElementById("id_mt_facture").value = data[0]
+          document.getElementById("id_mt_restant_facture").value = data[1]
         }
       });
 
     });
 </script>
+ <script>
+        function calculateResult() {
+            // Récupérer les valeurs des deux premiers champs d'entrée
+            var value1 = parseFloat(document.getElementById("id_mt_restant_facture").value) || 0;
+            var value2 = parseFloat(document.getElementById("id_mt_encaisse_jour").value) || 0;
+
+            // Effectuer le calcul (par exemple, addition ici)
+            var result = value1 - value2;
+
+            // Mettre le résultat dans le troisième champ d'entrée
+            document.getElementById("id_reliquat").value = result;
+
+            if (result < 0) {
+                id_reliquat.classList.add("negative-result");
+            } else {
+                id_reliquat.classList.remove("negative-result");
+            }
+        }
+    </script>
 {% endblock %}

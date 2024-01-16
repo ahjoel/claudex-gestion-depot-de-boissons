@@ -1,13 +1,16 @@
 import datetime
+from collections import defaultdict
 
 import fpdf
 import inflect
 import num2words as num2words
-from django.db import models
+from django.db import models, IntegrityError
+from django.db.models.functions import ExtractMonth, TruncMonth
+from django.utils.datetime_safe import date
 from num2words import num2words
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum, ExpressionWrapper, F, DecimalField, Count, Case, When, Value, FloatField
+from django.db.models import Sum, ExpressionWrapper, F, DecimalField, Count, Case, When, Value, FloatField, fields
 from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login
@@ -18,7 +21,7 @@ from response import Response
 
 from .decorators import allowed_users
 from .forms import CustomAuthenticationForm, ModelBForm, ProducteurForm, ProduitForm, ClientForm, ModeRForm, \
-    EntreeForm, SortieForm, FactureForm, PayementForm
+    EntreeForm, SortieForm, FactureForm, PayementForm, SortieOneForm, StatistiqueForm
 from .models import ModelB, Producteur, Produit, Client, ModeR, Mouvement, Facture, Payement
 from .utils import render_to_pdf
 
@@ -588,9 +591,12 @@ def sorties(request):
 def create_sortie(request):
     template_name = 'sortie/form.html'
     titre = "Enregistrement"
-    d = datetime.date.today().strftime("%d%m%Y")
+    # d = datetime.date.today().strftime("%d%m%Y")
+    date_facture_form = datetime.date.today().strftime("%Y-%m-%d")
     id_max = Facture.objects.filter(code_facture__isnull=False, active=True).count()
     today = datetime.date.today()
+    # todayy = datetime.strftime(todayy, '%d %B %Y').date()
+    # print(today)
     annee = today.year
     mois = today.month
     if (id_max == 0):
@@ -604,7 +610,8 @@ def create_sortie(request):
         date_facture = request.POST['date_facture']
         code_facture = request.POST['code_facture']
         client = request.POST['client']
-        type_client = request.POST['type_client']
+        nouveau_client = request.POST['nouveau_client']
+        nouveau_client_code = request.POST['nouveau_client_code']
         remise = request.POST['remise']
         tva = request.POST['tva']
         pdt = request.POST.getlist('pdtIds[]')
@@ -613,10 +620,17 @@ def create_sortie(request):
         ttc = mt_ht + tva + remise
 
         if pdt:
-            client_id = get_object_or_404(Client, id=client)
-            print('ok')
+            if nouveau_client:
+                nouveau_client = Client.objects.create(auteur=request.user, code=nouveau_client_code,
+                                                       rs=nouveau_client)
+                nouveau_client_id = nouveau_client.id
+                client_id = get_object_or_404(Client, id=nouveau_client_id)
+                client = nouveau_client_id
+            else:
+                client_id = get_object_or_404(Client, id=client)
+
             code_facture_reel = f"CLAUDEX-{annee}-{mois}/{client_id.code}/{id_max}"
-            fact = Facture.objects.create(code_facture=code_facture_reel, date_facture=date_facture, client=Client.objects.get(pk=client), type_client=type_client, tva=tva, remise=remise, mt_ttc=ttc, auteur=request.user)
+            fact = Facture.objects.create(code_facture=code_facture_reel, date_facture=date_facture, client=Client.objects.get(pk=client), tva=tva, remise=remise, mt_ttc=ttc, auteur=request.user)
             fact_id = fact.id
             for i in range(len(pdt)):
                 Mouvement.objects.create(auteur=request.user, facture=Facture.objects.get(pk=fact_id),
@@ -634,6 +648,7 @@ def create_sortie(request):
         'form': form,
         'form1': form1,
         'code_facture': code_facture,
+        'today': date_facture_form
     }
 
     return render(request, template_name,  context)
@@ -665,22 +680,23 @@ def create_one_sortie(request, id):
     facture_id = get_object_or_404(Facture, id=id)
 
     if request.method == 'POST':
-        form = SortieForm(request.POST)
-
+        form = SortieOneForm(request.POST)
+        qteDispo = float(request.POST['qteDispo'])
         if form.is_valid():
-            facture_saisi = form.cleaned_data['facture']
-            if facture_saisi == facture_id:
-                sortie = form.save(commit=False)
-                sortie.auteur = request.user
-                sortie.type_op = "OUT"
-                sortie.save()
+            qte = float(form.cleaned_data['qte'])
+            pdt = form.cleaned_data['produit']
+            if qte <= qteDispo:
+                Mouvement.objects.create(auteur=request.user, facture=Facture.objects.get(id=id),
+                                         produit=Produit.objects.get(id=pdt.id),
+                                         qte=qte,
+                                         type_op="OUT")
                 messages.success(request, "Enregistrement effectué", extra_tags='custom-success')
                 return redirect(f"/detail-facture/{facture_id.id}")
             else:
-                messages.error(request, "Une erreur est survenue lors de l'opération, choisissez correctement la facture.", extra_tags='custom-warning')
+                messages.error(request, "Une erreur est survenue lors de l'opération, choisissez correctement la quantité.", extra_tags='custom-warning')
                 return redirect(f"/create-one-sortie/{facture_id.id}")
     else:
-        form = SortieForm()
+        form = SortieOneForm()
 
     context = {
         'titre': titre,
@@ -698,7 +714,7 @@ def update_sortie(request, id):
     sortie = get_object_or_404(Mouvement, id=id)
     form = SortieForm(request.POST or None, instance=sortie)
     facture = sortie.facture.id
-    #print(facture)
+    # print(facture)
     if form.is_valid():
         check_facture = Payement.objects.filter(facture_id=facture, active=True).exists()
         if check_facture==False:
@@ -706,7 +722,7 @@ def update_sortie(request, id):
             messages.success(request, "Modification effectuée", extra_tags='custom-success')
             return redirect('/sortie')
         else:
-            messages.warning(request, "Modification impossible, la facture est en cours de payement", extra_tags='custom-warning')
+            messages.warning(request, "Modification impossible, la facture a déja un reglement", extra_tags='custom-warning')
             return redirect('/sortie')
 
     return render(request, 'sortie/form_edit.html', {'form': form, "titre": titre, "facture": facture})
@@ -724,7 +740,7 @@ def delete_sortie(request, id):
             messages.success(request, "Suppression effectuée", extra_tags='custom-success')
             return redirect('/sortie')
         else:
-            messages.warning(request, "Suppression impossible, la facture est en cours de payement", extra_tags='custom-warning')
+            messages.warning(request, "Suppression impossible, la facture a déja un reglement", extra_tags='custom-warning')
             return redirect('/sortie')
     else:
         messages.success(request, "Une erreur est survenue lors de l'opération.", extra_tags='custom-warning')
@@ -745,7 +761,7 @@ def update_sortie_facture(request, id):
             messages.success(request, "Modification effectuée", extra_tags='custom-success')
             return redirect(f"/detail-facture/{facture}")
         else:
-            messages.warning(request, "Modification impossible, la facture est en cours de payement", extra_tags='custom-warning')
+            messages.warning(request, "Modification impossible, la facture a déja un reglement", extra_tags='custom-warning')
             return redirect(f"/detail-facture/{facture}")
 
     return render(request, 'sortie/form_edit.html', {'form': form, "titre": titre, "facture": facture})
@@ -764,7 +780,7 @@ def delete_sortie_facture(request, id):
             messages.success(request, "Suppression effectuée", extra_tags='custom-success')
             return redirect(f"/detail-facture/{facture}")
         else:
-            messages.warning(request, "Suppression impossible, la facture est en cours de payement",
+            messages.warning(request, "Suppression impossible, la facture a déja un reglement",
                              extra_tags='custom-warning')
             return redirect(f"/detail-facture/{facture}")
     else:
@@ -793,12 +809,14 @@ def detail_facture(request, id):
     mt_tva = tva + remise
     montant_ht = sum(mouvement.produit.pv * mouvement.qte for mouvement in mouvements)
     montant_total = montant_ht - mt_tva
+    recap_types_facture = facture.recap_types_produits()
 
     context = {
         'facture': facture,
         'mouvements': mouvements,
         'montant_ht': montant_ht,
         'montant_total': montant_total,
+        'recap_types_facture': recap_types_facture,
         'remise': remise,
         'tva': tva,
     }
@@ -821,6 +839,7 @@ def detail_facture_payee(request, id):
     montant_total = montant_ht - mt_tva
 
     montant_restant = montant_total - total_reglee_for_facture
+    recap_types_facture = facture.recap_types_produits()
 
     context = {
         'facture': facture,
@@ -832,6 +851,7 @@ def detail_facture_payee(request, id):
         'info_payement': info_payement,
         'total_reglee_for_facture': total_reglee_for_facture,
         'montant_restant': montant_restant,
+        'recap_types_facture': recap_types_facture,
     }
     return render(request, 'payement/detail.html', context)
 
@@ -845,12 +865,16 @@ def update_facture(request, id):
 
     if form.is_valid():
         ## Controle si payement deja enregistree
-        form.save()
-        if form.save():
+        check_facture = Payement.objects.filter(facture_id=facture, active=True).exists()
+        if check_facture == False:
+            form.save()
             messages.success(request, "Modification effectuée", extra_tags='custom-success')
             return redirect('/facture')
         else:
-            messages.warning(request, "Erreur veuillez remplir correctement tous les champs", extra_tags='custom-warning')
+            messages.warning(request, "Modification impossible, la facture a déja un reglement",
+                             extra_tags='custom-warning')
+    else:
+        messages.warning(request, "Erreur veuillez remplir correctement tous les champs", extra_tags='custom-warning')
 
     return render(request, 'facture/form_facture.html', {'form': form, "titre": titre})
 
@@ -866,6 +890,7 @@ class generate_facture_a_payer(View):
         montant_total = montant_ht - mt_tva
         montant_total_lettre = num2words(int(montant_total), lang="fr")
         nombre_de_mouvements = Mouvement.objects.filter(facture=facture, active=True).order_by('id').count()
+        recap_types_facture = facture.recap_types_produits()
         data = {
             "facturateur": request.user,
             "facture": facture,
@@ -875,6 +900,7 @@ class generate_facture_a_payer(View):
             "montant_ht": montant_ht,
             "montant_total": montant_total,
             "montant_total_lettre": montant_total_lettre,
+            "recap_types_facture": recap_types_facture,
         }
         if nombre_de_mouvements > 10:
             pdf = render_to_pdf('pdf/facture_a_payer_unique.html', data)
@@ -897,6 +923,7 @@ class generate_facture_payer(View):
         total_reglee_for_facture = Payement.objects.filter(facture=info_payement.facture, active=True).aggregate(Sum('mt_encaisse'))['mt_encaisse__sum'] or 0
 
         facture = get_object_or_404(Facture, id=info_payement.facture.id)
+        recap_types_facture = facture.recap_types_produits()
         mouvements = Mouvement.objects.filter(facture=facture, active=True).order_by('id')
         tva = facture.tva
         remise = facture.remise
@@ -925,6 +952,7 @@ class generate_facture_payer(View):
             'total_reglee_for_facture': total_reglee_for_facture,
             'montant_restant': montant_restant,
             'date_echeance': date_echeance,
+            'recap_types_facture': recap_types_facture,
 
         }
         if nombre_de_mouvements > 10:
@@ -989,6 +1017,7 @@ class generate_stock_general_vente(View):
             return response
         return HttpResponse("Page Not Found")
 
+
 @login_required(login_url="/connexion")
 @allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR','CAISSIER', 'FACTURATION'])
 def payements(request):
@@ -1005,6 +1034,16 @@ def payements(request):
 def create_payement(request):
     template_name = 'payement/form.html'
     titre = "Enregistrement"
+    date_paiement_form = datetime.date.today().strftime("%Y-%m-%d")
+    id_max = Payement.objects.filter(active=True).count()
+    today = datetime.date.today()
+    annee = today.year
+    mois = today.month
+    if (id_max == 0):
+        id_max = 1
+    else:
+        id_max = id_max + 1
+    code_payement = f"PAYE-{annee}-{mois}/{id_max}"
     if request.method == 'POST':
         form = PayementForm(request.POST)
 
@@ -1012,22 +1051,32 @@ def create_payement(request):
         if valid:
             payement = form.save(commit=False)
             payement.auteur = request.user
-            total_reglee_for_facture = Payement.objects.filter(facture_id=form.cleaned_data['facture'].id, active=True).aggregate(Sum('mt_encaisse'))['mt_encaisse__sum'] or 0
-            montant_facture = Facture.objects.get(pk=form.cleaned_data['facture'].id).calcul_montant_total()
-            payement.mt_encaisse = form.cleaned_data['mt_encaisse']
-            payement.mt_restant = montant_facture - payement.mt_encaisse - total_reglee_for_facture
-            print(montant_facture, payement.mt_encaisse, total_reglee_for_facture, payement.mt_restant)
-            if payement.mt_encaisse <= montant_facture and form.cleaned_data['reliquat'] <= montant_facture:
-                if total_reglee_for_facture < montant_facture:
-                    payement.save()
-                    messages.success(request, "Enregistrement effectué", extra_tags='custom-success')
-                    return redirect("/create-payement")
-                else:
-                    messages.warning(request, "Facture Déja Reglée", extra_tags='custom-warning')
-                    return redirect("/create-payement")
+            payement.code_payement = code_payement
+
+            #total_reglee_for_facture = Payement.objects.filter(facture_id=form.cleaned_data['facture'].id, active=True).aggregate(Sum('mt_encaisse'))['mt_encaisse__sum'] or 0
+            #montant_facture = Facture.objects.get(pk=form.cleaned_data['facture'].id).calcul_montant_total()
+            montant_facture_restant = Facture.objects.get(pk=form.cleaned_data['facture'].id).montant_restant()
+            payement.mt_encaisse_jour = form.cleaned_data['mt_encaisse_jour']
+
+            reliquat = form.cleaned_data['reliquat']
+
+            if reliquat < 0:
+                payement.mt_encaisse = montant_facture_restant
             else:
-                messages.warning(request, "Reliquat incorrect", extra_tags='custom-warning')
+                payement.mt_encaisse = form.cleaned_data['mt_encaisse_jour']
+
+            payement.mt_restant = montant_facture_restant - payement.mt_encaisse
+            #payement.mt_restant = montant_facture - payement.mt_encaisse - total_reglee_for_facture
+            # print(montant_facture, payement.mt_encaisse, total_reglee_for_facture, payement.mt_restant)
+
+            if montant_facture_restant > 0:
+                payement.save()
+                messages.success(request, "Enregistrement effectué", extra_tags='custom-success')
                 return redirect("/create-payement")
+            else:
+                messages.warning(request, "Facture Déja Reglée", extra_tags='custom-warning')
+                return redirect("/create-payement")
+
         else:
             messages.error(request, "Une erreur est survenue lors de l'opération.", extra_tags='custom-warning')
             return redirect("/create-payement")
@@ -1036,6 +1085,8 @@ def create_payement(request):
 
     context = {
         'titre': titre,
+        'date_paiement_form': date_paiement_form,
+        'code_payement': code_payement,
         'form': form
     }
 
@@ -1048,11 +1099,12 @@ def load_mt_facture(request):
     if factId:
         facture_instance = Facture.objects.get(id=factId, active=True)
         total_amount = facture_instance.calcul_montant_total()
-
+        total_restant = facture_instance.montant_restant()
         mt_fact = total_amount or 0
-        return JsonResponse([mt_fact], safe=False)
+        mt_fact_rest = total_restant or 0
+        return JsonResponse([mt_fact, mt_fact_rest], safe=False)
     else:
-        return JsonResponse([0], safe=False)
+        return JsonResponse([0, 0], safe=False)
 
 
 @login_required(login_url="/connexion")
@@ -1092,5 +1144,160 @@ def detail_payement(request, id):
     return render(request, 'facture/detail.html', context)
 
 
+# Listing
+def statistique_ventes(request):
+    start_date = datetime.date.today().strftime("%Y-%m-%d")
+    end_date = datetime.date.today().strftime("%Y-%m-%d")
+    total_montant_factures, total_montant_encaisses, total_montant_restants = 0, 0, 0
+    if request.method == 'POST':
+        form = StatistiqueForm(request.POST)
+        start_date = request.POST['start_date']
+        end_date = request.POST['end_date']
+        if form.is_valid():
+            statistiques_ventes = Payement.paiements_pour_periode(start_date, end_date)
+            # Grouper par facture et calculer les sommes des montants encaissés et restants
+            factures_sommes = {}
+            for paiement in statistiques_ventes:
+                facture_id = paiement.facture.id
+                if facture_id not in factures_sommes:
+                    factures_sommes[facture_id] = {
+                        'payement_id': paiement.id,
+                        'facture': paiement.facture,
+                        'code_facture': paiement.facture.code_facture,
+                        'client': paiement.facture.client,
+                        'date_facture': paiement.facture.date_facture,
+                        'montant_facture': paiement.facture.calcul_montant_total(),
+                        'montant_encaisse': 0,
+                        'montant_restant': 0,
+                    }
+
+                factures_sommes[facture_id]['montant_encaisse'] += paiement.mt_encaisse
+                factures_sommes[facture_id]['montant_restant'] = factures_sommes[facture_id]['montant_facture'] - factures_sommes[facture_id]['montant_encaisse']
+
+            for facture_id, values in factures_sommes.items():
+                total_montant_factures += values['montant_facture']
+                total_montant_encaisses += values['montant_encaisse']
+                total_montant_restants += values['montant_restant']
+
+    else:
+        factures_sommes = None
+        form = StatistiqueForm()
+
+    context = {
+        'start_date': start_date,
+        'end_date': end_date,
+        'factures_sommes': factures_sommes,
+        'total_montant_factures': total_montant_factures,
+        'total_montant_encaisses': total_montant_encaisses,
+        'total_montant_restants': total_montant_restants,
+        'form': form,
+    }
+    return render(request, 'listings/statistique_vente.html', context)
+
+
+class statistique_vente_periode(View):
+    def get(self, request, start_date, end_date, *args, **kwargs):
+        total_montant_factures, total_montant_encaisses, total_montant_restants = 0, 0, 0
+        statistiques_ventes = Payement.paiements_pour_periode(start_date, end_date)
+        # Grouper par facture et calculer les sommes des montants encaissés et restants
+        factures_sommes = {}
+        for paiement in statistiques_ventes:
+            facture_id = paiement.facture.id
+            if facture_id not in factures_sommes:
+                factures_sommes[facture_id] = {
+                    'payement_id': paiement.id,
+                    'facture': paiement.facture,
+                    'code_facture': paiement.facture.code_facture,
+                    'client': paiement.facture.client,
+                    'date_facture': paiement.facture.date_facture,
+                    'montant_facture': paiement.facture.calcul_montant_total(),
+                    'montant_encaisse': 0,
+                    'montant_restant': 0,
+                }
+
+            factures_sommes[facture_id]['montant_encaisse'] += paiement.mt_encaisse
+            factures_sommes[facture_id]['montant_restant'] = factures_sommes[facture_id]['montant_facture'] - \
+                                                             factures_sommes[facture_id]['montant_encaisse']
+
+        for facture_id, values in factures_sommes.items():
+            total_montant_factures += values['montant_facture']
+            total_montant_encaisses += values['montant_encaisse']
+            total_montant_restants += values['montant_restant']
+
+
+        data = {
+            "start_date": start_date,
+            "end_date": end_date,
+            'today': datetime.date.today().strftime("%d-%m-%Y"),
+            'factures_sommes': factures_sommes,
+            'total_montant_factures': total_montant_factures,
+            'total_montant_encaisses': total_montant_encaisses,
+            'total_montant_restants': total_montant_restants,
+        }
+
+        pdf = render_to_pdf('pdf/statistique_vente_periode.html', data)
+
+        if pdf:
+            response=HttpResponse(pdf, content_type='application/pdf')
+            filename = "Statistique_Ventes_%s.pdf" %(data['today'])
+            content = "inline; filename= %s" %(filename)
+            response['Content-Disposition']=content
+            return response
+        return HttpResponse("Page Not Found")
+
+
+class statistique_vente_periode_mensuelle(View):
+    def get(self, request, *args, **kwargs):
+        start_date = "2023-12-01"
+        end_date = datetime.date.today().strftime("%Y-%m-%d")
+
+        # Test - Statistique Mensuelle
+        montant_total_factures_par_mois = Facture.montant_total_factures_par_mois()
+        montant_total_encaisse_par_mois = Facture.montant_total_encaisse_par_mois()
+        montant_total_restant_par_mois = Facture.montant_total_restant_par_mois()
+
+        total_montant_total = sum(item['montant_total'] for item in montant_total_factures_par_mois)
+        total_montant_encaisse = sum(item['montant_encaisse'] for item in montant_total_encaisse_par_mois)
+        total_montant_restant = sum(item['montant_restant'] for item in montant_total_restant_par_mois)
+
+        # End Test
+
+        data = {
+            "start_date": start_date,
+            "end_date": end_date,
+            'today': datetime.date.today().strftime("%d-%m-%Y"),
+            'montant_total_factures_par_mois': montant_total_factures_par_mois,
+            'montants': [
+                {
+                    'mois': item['mois'],
+                    'montant_total': item['montant_total'],
+                    'montant_encaisse': next(
+                        (x['montant_encaisse'] for x in montant_total_encaisse_par_mois if x['mois'] == item['mois']),
+                        0),
+                    'montant_restant': next(
+                        (x['montant_restant'] for x in montant_total_restant_par_mois if x['mois'] == item['mois']), 0),
+                }
+                for item in montant_total_factures_par_mois
+            ],
+            'total_montant_total': total_montant_total,
+            'total_montant_encaisse': total_montant_encaisse,
+            'total_montant_restant': total_montant_restant,
+        }
+
+        pdf = render_to_pdf('pdf/statistique_vente_periode_mensuelle.html', data)
+
+        if pdf:
+            response=HttpResponse(pdf, content_type='application/pdf')
+            filename = "Statistique_Ventes_%s.pdf" %(data['today'])
+            content = "inline; filename= %s" %(filename)
+            response['Content-Disposition']=content
+            return response
+        return HttpResponse("Page Not Found")
+
+
 def custom_404(request, exception):
     return render(request, 'accueil/404.html', status=404)
+
+
+def custom_500(request):
+    return render(request, 'accueil/500.html', status=500)

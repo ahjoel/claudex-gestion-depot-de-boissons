@@ -150,20 +150,20 @@
                         <td style="padding: 1px;">0%</td>
                         <td style=""></td>
                         <td style=""><strong>R. à Payer :</strong> {{montant_restant|intcomma}}</td>
-                        <td style=""><strong>Mont. Versé :</strong> {{total_reglee_for_facture|intcomma}}</td>
+                        <td style=""><strong>Total. Enc :</strong> {{total_reglee_for_facture|intcomma}}</td>
                     </tr>
                     <tr>
                         <td style=""><strong>MONTANT TVA :</strong></td>
                         <td style="padding: 1px;">{{tva|intcomma}}</td>
                         <td style=""></td>
-                        <td style=""><strong>Mont. Enc :</strong> {{total_reglee_for_facture|intcomma}}</td>
-                        <td style=""><strong>Reliquat :</strong> 0</td>
+                        <td style=""><strong>Mont. Enc :</strong> {{info_payement.mt_encaisse_jour|intcomma}}</td>
+                        <td style=""><strong>Reliquat :</strong> {{info_payement.reliquat|intcomma}}</td>
                     </tr>
                     <tr>
                         <td style=""><strong>REMISE :</strong></td>
                         <td style="">{{remise|intcomma}}</td>
                         <td style=""></td>
-                        <td style=""><strong>Ancien reste à Payer :</strong> 0</td>
+                        <td style=""><strong>Ancien reste à Payer :</strong> {{facture.client.montant_factures_impayees|intcomma}}</td>
                     </tr>
                     <tr>
                         <td style=""><strong>MONTANT TTC :</strong></td>
@@ -242,20 +242,20 @@
                         <td style="padding: 1px;">0%</td>
                         <td style=""></td>
                         <td style=""><strong>R. à Payer :</strong> {{montant_restant|intcomma}}</td>
-                        <td style=""><strong>Mont. Versé :</strong> {{total_reglee_for_facture|intcomma}}</td>
+                        <td style=""><strong>Total. Enc :</strong> {{total_reglee_for_facture|intcomma}}</td>
                     </tr>
                     <tr>
                         <td style=""><strong>MONTANT TVA :</strong></td>
                         <td style="padding: 1px;">{{tva|intcomma}}</td>
                         <td style=""></td>
-                        <td style=""><strong>Mont. Enc :</strong> {{total_reglee_for_facture|intcomma}}</td>
-                        <td style=""><strong>Reliquat :</strong> 0</td>
+                        <td style=""><strong>Mont. Enc :</strong> {{info_payement.mt_encaisse_jour|intcomma}}</td>
+                        <td style=""><strong>Reliquat :</strong> {{info_payement.reliquat|intcomma}}</td>
                     </tr>
                     <tr>
                         <td style=""><strong>REMISE :</strong></td>
                         <td style="">{{remise|intcomma}}</td>
                         <td style=""></td>
-                        <td style=""><strong>Ancien reste à Payer :</strong> 0</td>
+                        <td style=""><strong>Ancien reste à Payer :</strong> {{facture.client.montant_factures_impayees|intcomma}}</td>
                     </tr>
                     <tr>
                         <td style=""><strong>MONTANT TTC :</strong></td>
