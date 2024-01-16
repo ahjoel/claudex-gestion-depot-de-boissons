@@ -98,7 +98,7 @@ class FactureForm(forms.ModelForm):
     code_facture = forms.CharField(required=True, max_length=50, widget=forms.TextInput(attrs={'class': 'form-control'}))
     date_facture = forms.DateField(widget=forms.DateInput(attrs={'class': 'form-control', 'readonly': 'true'}))
     client = forms.ModelChoiceField(queryset=Client.objects.filter(active=True).order_by('-id'),
-                                    required=True, widget=forms.Select(attrs={'class': 'form-control'}))
+                                    required=False, widget=forms.Select(attrs={'class': 'form-control'}))
     remise = forms.IntegerField(required=True, initial=0, widget=forms.TextInput(attrs={'class': 'form-control'}))
     tva = forms.IntegerField(required=True, initial=0, widget=forms.TextInput(attrs={'class': 'form-control'}))
 
