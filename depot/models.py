@@ -3,7 +3,7 @@ from datetime import datetime, date
 
 from django.contrib.auth.models import User
 from django.db import models
-from django.db.models import Sum, F
+from django.db.models import Sum, F, ExpressionWrapper, DecimalField, Func
 from django.db.models.functions import TruncMonth
 
 
@@ -98,8 +98,9 @@ class Produit(models.Model):
 
 class Client(models.Model):
     auteur = models.ForeignKey(User, on_delete=models.PROTECT)
-    code = models.CharField(max_length=20, blank=False, null=False, unique=True)
-    rs = models.CharField(max_length=80, blank=False, null=False)
+    code = models.CharField(max_length=20, blank=False, null=False)
+    rs = models.CharField(max_length=80, blank=False, null=False, unique=True)
+    type = models.CharField(max_length=30, blank=True, null=True)
     ville = models.CharField(max_length=30, blank=True, null=True)
     tel = models.CharField(max_length=30, blank=True, null=True)
     mail = models.EmailField(max_length=40, blank=True, null=True)
@@ -126,6 +127,11 @@ class Client(models.Model):
             montant_impaye_total += facture.montant_restant()
 
         return montant_impaye_total
+
+
+class MontantRestant(Func):
+    function = 'montant_restant'
+    output_field = DecimalField()
 
 
 class Facture(models.Model):
@@ -178,10 +184,17 @@ class Facture(models.Model):
         mouvements = self.mouvement_set.filter(active=True)
 
         # Créer un récapitulatif des types de produits avec le producteur associé
-        recap_types = Counter(
-            (mouvement.produit.producteur.libelle, mouvement.produit.modelb.libelle)
-            for mouvement in mouvements
-        )
+        # recap_types = Counter(
+        #     (mouvement.produit.producteur.libelle, mouvement.produit.modelb.libelle, mouvement.qte)
+        #     for mouvement in mouvements
+        # )
+        recap_types = Counter()
+        for mouvement in mouvements:
+            type_produit = (
+                mouvement.produit.producteur.libelle,
+                mouvement.produit.modelb.libelle,
+            )
+            recap_types[type_produit] += mouvement.qte
 
         return dict(recap_types)
 
@@ -221,7 +234,6 @@ class Facture(models.Model):
     # End Test
 
 
-
 class Mouvement(models.Model):
     auteur = models.ForeignKey(User, on_delete=models.PROTECT)
     facture = models.ForeignKey(Facture, on_delete=models.PROTECT, null=True)
@@ -240,15 +252,31 @@ class Mouvement(models.Model):
         return self.produit.pv * self.qte
 
 
+class Historique(models.Model):
+    auteur = models.ForeignKey(User, on_delete=models.PROTECT)
+    action = models.CharField(max_length=30, blank=False, null=False)
+    table = models.CharField(max_length=80, blank=False, null=False)
+    contenu = models.TextField(blank=False, null=False)
+
+    date_creation = models.DateTimeField(auto_now_add=True)
+    date_modification = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.auteur}"
+
+    class Meta:
+        verbose_name_plural = "GESTION DES HISTORIQUES"
+
+
 class Payement(models.Model):
     auteur = models.ForeignKey(User, on_delete=models.PROTECT)
     code_payement = models.CharField(max_length=100, unique=True)
     moder = models.ForeignKey(ModeR, on_delete=models.PROTECT, default=1)
     date_payement = models.DateField()
     facture = models.ForeignKey(Facture, on_delete=models.PROTECT)
-    mt_encaisse = models.IntegerField(default=0)
     mt_restant = models.IntegerField(default=0)
-    mt_encaisse_jour = models.IntegerField(default=0)
+    mt_recu = models.IntegerField(default=0)
+    mt_encaisse = models.IntegerField(default=0)
     reliquat = models.IntegerField(default=0)
 
     active = models.BooleanField(default=True)

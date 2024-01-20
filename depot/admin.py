@@ -3,7 +3,7 @@ from django.contrib.admin import AdminSite
 from django.http import HttpResponseRedirect
 
 from depot import views
-from depot.models import ModelB, Producteur, ModeR, Produit, Client, Facture, Mouvement, Payement
+from depot.models import ModelB, Producteur, ModeR, Produit, Client, Facture, Mouvement, Payement, Historique
 
 # Register your models here.
 admin.site.site_header = "CLAUDEX-ADMIN"
@@ -59,5 +59,10 @@ class FactureAdmin(admin.ModelAdmin):
 @admin.register(Payement)
 class PayementAdmin(admin.ModelAdmin):
     list_display = ('auteur', 'code_payement', 'date_payement', 'facture', 'mt_encaisse', 'mt_restant', 'reliquat', 'active', 'date_creation', 'date_modification')
+
+
+@admin.register(Historique)
+class HistoriqueAdmin(admin.ModelAdmin):
+    list_display = ('auteur', 'action', 'table', 'contenu', 'date_creation', 'date_modification')
 
 
