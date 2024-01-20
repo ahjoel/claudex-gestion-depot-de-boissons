@@ -1,7 +1,5 @@
-
 import datetime
 from django import forms
-from django.contrib.auth.models import User
 from django.forms import ModelChoiceField
 
 from .models import ModelB, Producteur, Produit, Client, ModeR, Mouvement, Facture, Payement
@@ -144,14 +142,12 @@ class PayementForm(forms.ModelForm):
     date_payement = forms.DateField(initial=datetime.date.today().strftime("%Y-%m-%d"), widget=forms.DateInput(attrs={'class': 'form-control', 'readonly': 'true'}))
     moder = forms.ModelChoiceField(queryset=ModeR.objects.filter(active=True).order_by('-id'),
                                      required=True, widget=forms.Select(attrs={'class': 'form-control'}))
-    # mt_facture = forms.IntegerField(required=True, initial=0, widget=forms.TextInput(attrs={'class': 'form-control', 'autocomplete': 'off', 'readonly':'on'}))
-    # mt_reglee = forms.IntegerField(required=True, initial=0, widget=forms.TextInput(attrs={'class': 'form-control', 'autocomplete': 'off', 'readonly':'on'}))
-    mt_encaisse_jour = forms.IntegerField(required=True, initial=0, widget=forms.TextInput(attrs={'class': 'form-control', 'autocomplete': 'off'}))
-    reliquat = forms.IntegerField(required=True, initial=0, widget=forms.TextInput(attrs={'class': 'form-control', 'autocomplete': 'off'}))
+    mt_encaisse = forms.IntegerField(required=True, initial=0, widget=forms.TextInput(attrs={'class': 'form-control', 'autocomplete': 'off'}))
+    mt_recu = forms.IntegerField(required=True, initial=0, widget=forms.TextInput(attrs={'class': 'form-control', 'autocomplete': 'off'}))
 
     class Meta:
         model = Payement
-        fields = ['date_payement', 'moder', 'facture', 'mt_encaisse_jour', 'reliquat']
+        fields = ['date_payement', 'moder', 'facture', 'mt_encaisse', 'mt_recu']
 
     #def __init__(self, *args, **kwargs):
     #    super(PayementForm, self).__init__(*args, **kwargs)

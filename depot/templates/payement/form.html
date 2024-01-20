@@ -59,6 +59,13 @@
                 <form method="POST" autocomplete="off" id="payementForm"  data-mt-url="{% url 'ajax_load_mt_fact' %}" class="form-horizontal form-label-left">
                     {% csrf_token %}
                     <div class="item form-group">
+                        <label class="col-form-label col-md-3 col-sm-3 label-align" for="facture">Facture <span class="required">*</span>
+                        </label>
+                        <div class="col-md-6 col-sm-6 ">
+                            {{ form.facture }}
+                        </div>
+                    </div>
+                    <div class="item form-group">
                         <label class="col-form-label col-md-3 col-sm-3 label-align" for="id_code_payement">Mode Reglement <span class="required">*</span>
                         </label>
                         <div class="col-md-6 col-sm-6 ">
@@ -72,13 +79,6 @@
                            {{ form.date_payement }}
                         </div>
                     </div>
-                    <div class="item form-group">
-                        <label class="col-form-label col-md-3 col-sm-3 label-align" for="facture">Facture <span class="required">*</span>
-                        </label>
-                        <div class="col-md-6 col-sm-6 ">
-                            {{ form.facture }}
-                        </div>
-                    </div>
                    <div class="item form-group">
                         <label class="col-form-label col-md-3 col-sm-3 label-align" for="id_mt_facture">Montant Facture <span class="required">*</span>
                         </label>
@@ -90,21 +90,21 @@
                         <label class="col-form-label col-md-3 col-sm-3 label-align" for="id_mt_facture">Montant Restant Facture <span class="required">*</span>
                         </label>
                         <div class="col-md-6 col-sm-6 ">
-                            <input type="number" name="mt_restant_facture" oninput="calculateResult()" id="id_mt_restant_facture" class="form-control" readonly="True">
+                            <input type="number" name="mt_restant_facture" id="id_mt_restant_facture" class="form-control" readonly="True">
                         </div>
                     </div>
                     <div class="item form-group">
-                        <label class="col-form-label col-md-3 col-sm-3 label-align" for="id_mt_encaisse_jour">Montant Encaisse <span class="required">*</span>
+                        <label class="col-form-label col-md-3 col-sm-3 label-align" for="id_mt_recu">Montant Reçu <span class="required">*</span>
                         </label>
                         <div class="col-md-6 col-sm-6 ">
-                            <input type="number" name="mt_encaisse_jour" oninput="calculateResult()" id="id_mt_encaisse_jour" required="True" class="form-control">
+                            <input type="number" name="mt_recu" id="id_mt_recu" required="True" class="form-control">
                         </div>
                     </div>
                     <div class="item form-group">
-                        <label class="col-form-label col-md-3 col-sm-3 label-align" for="id_reliquat">Reliquat <span class="required">*</span>
+                        <label class="col-form-label col-md-3 col-sm-3 label-align" for="id_mt_encaisse">Montant Reglé <span class="required">*</span>
                         </label>
                         <div class="col-md-6 col-sm-6 ">
-                            <input type="number" readonly="true"  name="reliquat" class="form-control" required="True" id="id_reliquat">
+                            <input type="number"  name="mt_encaisse" class="form-control" required="True" id="id_mt_encaisse">
                         </div>
                     </div>
 

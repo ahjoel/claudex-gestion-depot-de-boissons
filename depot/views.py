@@ -1,28 +1,22 @@
 import datetime
-from collections import defaultdict
 
-import fpdf
-import inflect
 import num2words as num2words
+from django.contrib.auth.models import User
 from django.db import models, IntegrityError
-from django.db.models.functions import ExtractMonth, TruncMonth
 from django.utils.datetime_safe import date
 from num2words import num2words
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum, ExpressionWrapper, F, DecimalField, Count, Case, When, Value, FloatField, fields
+from django.db.models import Sum, ExpressionWrapper, F, DecimalField, Count
 from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login
 from django.views import View
-from fpdf import FPDF
-
-from response import Response
 
 from .decorators import allowed_users
 from .forms import CustomAuthenticationForm, ModelBForm, ProducteurForm, ProduitForm, ClientForm, ModeRForm, \
     EntreeForm, SortieForm, FactureForm, PayementForm, SortieOneForm, StatistiqueForm
-from .models import ModelB, Producteur, Produit, Client, ModeR, Mouvement, Facture, Payement
+from .models import ModelB, Producteur, Produit, Client, ModeR, Mouvement, Facture, Payement, Historique
 from .utils import render_to_pdf
 
 
@@ -39,6 +33,9 @@ def custom_login(request):
                 password = form.cleaned_data['password']
                 user = authenticate(username=username, password=password)
                 if user is not None:
+                    Historique.objects.create(auteur=User.objects.get(username=username), action="Connexion",
+                                              table="Authentification",
+                                              contenu=User.objects.get(username=username))
                     login(request, user)
                     return redirect("/")
                 else:
@@ -129,7 +126,7 @@ def home(request):
 
 
 @login_required(login_url="/connexion")
-@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR','CAISSIER', 'FACTURATION'])
+@allowed_users(allowed_roles=['GERANT', 'ADMINISTRATEUR', 'CAISSIER', 'FACTURATION'])
 def gmodels(request):
     modelbs = ModelB.objects.filter(active=True).order_by('-id')
     context = {
@@ -156,6 +153,7 @@ def create_gmodels(request):
         if valid:
             modelb = form.save(commit=False)
             modelb.auteur = request.user
+            Historique.objects.create(auteur=request.user, action="Enregistrement", table="Gestion des Models", contenu=modelb)
             modelb.save()
             messages.success(request, "Enregistrement effectué", extra_tags='custom-success')
             return redirect("/create-model")
@@ -180,6 +178,8 @@ def update_gmodels(request, id):
     form = ModelBForm(request.POST or None, instance=modelb)
 
     if form.is_valid():
+        Historique.objects.create(auteur=request.user, action="Modification", table="Gestion des Models",
+                                  contenu=modelb)
         form.save()
         messages.success(request, "Modification effectuée", extra_tags='custom-success')
         return redirect('/model')
@@ -192,6 +192,8 @@ def delete_gmodels(request, id):
     modelb = get_object_or_404(ModelB, id=id)
 
     if modelb:
+        Historique.objects.create(auteur=request.user, action="Suppression", table="Gestion des Models",
+                                  contenu=modelb)
         modelb.delete()
         messages.success(request, "Suppression effectuée", extra_tags='custom-success')
         return redirect('/model')
@@ -229,6 +231,8 @@ def create_producteur(request):
         if valid:
             producteur = form.save(commit=False)
             producteur.auteur = request.user
+            Historique.objects.create(auteur=request.user, action="Enregistrement", table="Gestion des Producteurs",
+                                      contenu=producteur)
             producteur.save()
             messages.success(request, "Enregistrement effectué", extra_tags='custom-success')
             return redirect("/create-producteur")
@@ -254,6 +258,8 @@ def update_producteur(request, id):
     form = ProducteurForm(request.POST or None, instance=producteur)
 
     if form.is_valid():
+        Historique.objects.create(auteur=request.user, action="Modification", table="Gestion des Producteurs",
+                                  contenu=producteur)
         form.save()
         messages.success(request, "Modification effectuée", extra_tags='custom-success')
         return redirect('/producteur')
@@ -267,6 +273,8 @@ def delete_producteur(request, id):
     producteur = get_object_or_404(Producteur, id=id)
 
     if producteur:
+        Historique.objects.create(auteur=request.user, action="Suppression", table="Gestion des Producteurs",
+                                  contenu=producteur)
         producteur.delete()
         messages.success(request, "Suppression effectuée", extra_tags='custom-success')
         return redirect('/producteur')
@@ -304,6 +312,8 @@ def create_produit(request):
         if valid:
             produit = form.save(commit=False)
             produit.auteur = request.user
+            Historique.objects.create(auteur=request.user, action="Enregistrement", table="Gestion des Produits",
+                                      contenu=produit)
             produit.save()
             messages.success(request, "Enregistrement effectué", extra_tags='custom-success')
             return redirect("/create-produit")
@@ -329,6 +339,8 @@ def update_produit(request, id):
     form = ProduitForm(request.POST or None, instance=produit)
 
     if form.is_valid():
+        Historique.objects.create(auteur=request.user, action="Modification", table="Gestion des Produits",
+                                  contenu=produit)
         form.save()
         messages.success(request, "Modification effectuée", extra_tags='custom-success')
         return redirect('/produit')
@@ -342,6 +354,8 @@ def delete_produit(request, id):
     produit = get_object_or_404(Produit, id=id)
 
     if produit:
+        Historique.objects.create(auteur=request.user, action="Suppression", table="Gestion des Produits",
+                                  contenu=produit)
         produit.delete()
         messages.success(request, "Suppression effectuée", extra_tags='custom-success')
         return redirect('/produit')
@@ -378,6 +392,8 @@ def create_client(request):
         if valid:
             client = form.save(commit=False)
             client.auteur = request.user
+            Historique.objects.create(auteur=request.user, action="Enregistrement", table="Gestion des Clients",
+                                      contenu=client)
             client.save()
             messages.success(request, "Enregistrement effectué", extra_tags='custom-success')
             return redirect("/create-client")
@@ -403,6 +419,8 @@ def update_client(request, id):
     form = ClientForm(request.POST or None, instance=client)
 
     if form.is_valid():
+        Historique.objects.create(auteur=request.user, action="Modification", table="Gestion des Clients",
+                                  contenu=client)
         form.save()
         messages.success(request, "Modification effectuée", extra_tags='custom-success')
         return redirect('/client')
@@ -411,11 +429,13 @@ def update_client(request, id):
 
 
 @login_required(login_url="/connexion")
-@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR'])
+@allowed_users(allowed_roles=['GERANT', 'ADMINISTRATEUR'])
 def delete_client(request, id):
     client = get_object_or_404(Client, id=id)
 
     if client:
+        Historique.objects.create(auteur=request.user, action="Suppression", table="Gestion des Clients",
+                                  contenu=client)
         client.delete()
         messages.success(request, "Suppression effectuée", extra_tags='custom-success')
         return redirect('/client')
@@ -452,6 +472,8 @@ def create_moder(request):
         if valid:
             moder = form.save(commit=False)
             moder.auteur = request.user
+            Historique.objects.create(auteur=request.user, action="Enregistrement", table="Gestion des Models de Reglement",
+                                      contenu=moder)
             moder.save()
             messages.success(request, "Enregistrement effectué", extra_tags='custom-success')
             return redirect("/create-moder")
@@ -477,6 +499,8 @@ def update_moder(request, id):
     form = ModeRForm(request.POST or None, instance=moder)
 
     if form.is_valid():
+        Historique.objects.create(auteur=request.user, action="Modification", table="Gestion des Models de Reglement",
+                                  contenu=moder)
         form.save()
         messages.success(request, "Modification effectuée", extra_tags='custom-success')
         return redirect('/moder')
@@ -490,6 +514,8 @@ def delete_moder(request, id):
     moder = get_object_or_404(ModeR, id=id)
 
     if moder:
+        Historique.objects.create(auteur=request.user, action="Suppression", table="Gestion des Models de Reglement",
+                                  contenu=moder)
         moder.delete()
         messages.success(request, "Suppression effectuée", extra_tags='custom-success')
         return redirect('/moder')
@@ -522,8 +548,10 @@ def create_entree(request):
             entree = form.save(commit=False)
             entree.auteur = request.user
             entree.type_op = "ADD"
+            Historique.objects.create(auteur=request.user, action="Enregistrement",
+                                      table="Gestion du Stock Entrées",
+                                      contenu=entree)
             entree.save()
-            # Mouvement.objects.create(auteur=request.user, date_creation=datetime.date, produit=Produit.objects.get(pk=form.cleaned_data['produit'].id), qte=form.cleaned_data['qte'], type_op="ADD")
             messages.success(request, "Enregistrement effectué", extra_tags='custom-success')
             return redirect("/create-entree")
         else:
@@ -548,9 +576,9 @@ def update_entree(request, id):
     form = EntreeForm(request.POST or None, instance=entree)
 
     if form.is_valid():
-        # Mouvement.objects.update(id=id, auteur=request.user, date_creation=datetime.date,
-        #                         produit=Produit.objects.get(pk=form.cleaned_data['produit'].id),
-        #                         qte=form.cleaned_data['qte'], type_op="ADD")
+        Historique.objects.create(auteur=request.user, action="Modification",
+                                  table="Gestion du Stock Entrées",
+                                  contenu=entree)
         form.save()
         messages.success(request, "Modification effectuée", extra_tags='custom-success')
         return redirect('/entree')
@@ -564,6 +592,9 @@ def delete_entree(request, id):
     entree = get_object_or_404(Mouvement, id=id)
 
     if entree:
+        Historique.objects.create(auteur=request.user, action="Suppression",
+                                  table="Gestion du Stock Entrées",
+                                  contenu=entree)
         entree.delete()
         messages.success(request, "Suppression effectuée", extra_tags='custom-success')
         return redirect('/entree')
@@ -576,7 +607,6 @@ def delete_entree(request, id):
 @login_required(login_url="/connexion")
 @allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR','CAISSIER', 'FACTURATION'])
 def sorties(request):
-    #sorties = Mouvement.objects.filter(active=True, type_op="OUT").order_by('-id')
     sorties = Mouvement.objects.filter(active=True, type_op="OUT").order_by('-id').annotate(
         montant=ExpressionWrapper(F('produit__pv') * F('qte'), output_field=DecimalField())
     )
@@ -621,8 +651,11 @@ def create_sortie(request):
 
         if pdt:
             if nouveau_client:
+                Historique.objects.create(auteur=request.user, action="Enregistrement",
+                                          table="Gestion des Clients",
+                                          contenu=nouveau_client)
                 nouveau_client = Client.objects.create(auteur=request.user, code=nouveau_client_code,
-                                                       rs=nouveau_client)
+                                                       rs=nouveau_client, type="DIVERS")
                 nouveau_client_id = nouveau_client.id
                 client_id = get_object_or_404(Client, id=nouveau_client_id)
                 client = nouveau_client_id
@@ -637,6 +670,9 @@ def create_sortie(request):
                                         produit=Produit.objects.get(pk=pdt[i]),
                                         qte=qte[i],
                                         type_op="OUT")
+                Historique.objects.create(auteur=request.user, action="Enregistrement",
+                                          table="Gestion du Stock Sortie",
+                                          contenu=f"{Facture.objects.get(pk=fact_id)}-{Produit.objects.get(pk=pdt[i])}")
             messages.success(request, "Enregistrement(s) effectué(s)")
             return redirect('sortie')
         else:
@@ -673,7 +709,7 @@ def load_qte_dispo(request):
 
 
 @login_required(login_url="/connexion")
-@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR', 'FACTURATION'])
+@allowed_users(allowed_roles=['GERANT', 'ADMINISTRATEUR', 'FACTURATION'])
 def create_one_sortie(request, id):
     template_name = 'sortie/form_add_produit_to_facture.html'
     titre = "Enregistrement"
@@ -690,6 +726,9 @@ def create_one_sortie(request, id):
                                          produit=Produit.objects.get(id=pdt.id),
                                          qte=qte,
                                          type_op="OUT")
+                Historique.objects.create(auteur=request.user, action="Enregistrement",
+                                          table="Gestion du Stock Sortie",
+                                          contenu=f"{Facture.objects.get(id=id)}-{Produit.objects.get(id=pdt.id)}")
                 messages.success(request, "Enregistrement effectué", extra_tags='custom-success')
                 return redirect(f"/detail-facture/{facture_id.id}")
             else:
@@ -707,17 +746,22 @@ def create_one_sortie(request, id):
 
     return render(request, template_name, context)
 
+
 @login_required(login_url="/connexion")
-@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR', 'FACTURATION'])
+@allowed_users(allowed_roles=['GERANT', 'ADMINISTRATEUR', 'FACTURATION'])
 def update_sortie(request, id):
     titre = "Modification"
     sortie = get_object_or_404(Mouvement, id=id)
     form = SortieForm(request.POST or None, instance=sortie)
-    facture = sortie.facture.id
+    facture = sortie.facture
+    facture_id = sortie.facture.id
     # print(facture)
     if form.is_valid():
-        check_facture = Payement.objects.filter(facture_id=facture, active=True).exists()
+        check_facture = Payement.objects.filter(facture_id=facture_id, active=True).exists()
         if check_facture==False:
+            Historique.objects.create(auteur=request.user, action="Modification",
+                                      table="Gestion du Stock Sortie",
+                                      contenu=sortie)
             form.save()
             messages.success(request, "Modification effectuée", extra_tags='custom-success')
             return redirect('/sortie')
@@ -727,8 +771,9 @@ def update_sortie(request, id):
 
     return render(request, 'sortie/form_edit.html', {'form': form, "titre": titre, "facture": facture})
 
+
 @login_required(login_url="/connexion")
-@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR'])
+@allowed_users(allowed_roles=['GERANT', 'ADMINISTRATEUR'])
 def delete_sortie(request, id):
     sortie = get_object_or_404(Mouvement, id=id)
     facture = sortie.facture.id
@@ -736,6 +781,9 @@ def delete_sortie(request, id):
     if sortie:
         check_facture = Payement.objects.filter(facture_id=facture, active=True).exists()
         if check_facture == False:
+            Historique.objects.create(auteur=request.user, action="Suppression",
+                                      table="Gestion du Stock Sortie",
+                                      contenu=sortie)
             sortie.delete()
             messages.success(request, "Suppression effectuée", extra_tags='custom-success')
             return redirect('/sortie')
@@ -747,16 +795,19 @@ def delete_sortie(request, id):
 
 
 @login_required(login_url="/connexion")
-@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR','FACTURATION'])
+@allowed_users(allowed_roles=['GERANT', 'ADMINISTRATEUR', 'FACTURATION'])
 def update_sortie_facture(request, id):
     titre = "Modification"
     sortie = get_object_or_404(Mouvement, id=id)
     form = SortieForm(request.POST or None, instance=sortie)
     facture = sortie.facture.id
-    #print(facture)
+
     if form.is_valid():
         check_facture = Payement.objects.filter(facture_id=facture, active=True).exists()
         if check_facture==False:
+            Historique.objects.create(auteur=request.user, action="Modification",
+                                      table="Gestion du Stock Sorties",
+                                      contenu=sortie)
             form.save()
             messages.success(request, "Modification effectuée", extra_tags='custom-success')
             return redirect(f"/detail-facture/{facture}")
@@ -768,7 +819,7 @@ def update_sortie_facture(request, id):
 
 
 @login_required(login_url="/connexion")
-@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR'])
+@allowed_users(allowed_roles=['GERANT', 'ADMINISTRATEUR'])
 def delete_sortie_facture(request, id):
     sortie = get_object_or_404(Mouvement, id=id)
     facture = sortie.facture.id
@@ -776,6 +827,9 @@ def delete_sortie_facture(request, id):
     if sortie:
         check_facture = Payement.objects.filter(facture_id=facture, active=True).exists()
         if check_facture == False:
+            Historique.objects.create(auteur=request.user, action="Suppression",
+                                      table="Gestion du Stock Sorties",
+                                      contenu=sortie)
             sortie.delete()
             messages.success(request, "Suppression effectuée", extra_tags='custom-success')
             return redirect(f"/detail-facture/{facture}")
@@ -790,9 +844,9 @@ def delete_sortie_facture(request, id):
 
 
 @login_required(login_url="/connexion")
-@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR', 'FACTURATION', 'CAISSIER'])
+@allowed_users(allowed_roles=['GERANT', 'ADMINISTRATEUR', 'FACTURATION', 'CAISSIER'])
 def factures(request):
-    factures = Facture.objects.filter(active=True).annotate(nombre_de_produits=Count('mouvement'))
+    factures = Facture.objects.filter(active=True).annotate(nombre_de_produits=Count('mouvement')).order_by('-id')
     context = {
         'factures': factures
     }
@@ -800,7 +854,7 @@ def factures(request):
 
 
 @login_required(login_url="/connexion")
-@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR','FACTURATION', 'CAISSIER'])
+@allowed_users(allowed_roles=['GERANT', 'ADMINISTRATEUR', 'FACTURATION', 'CAISSIER'])
 def detail_facture(request, id):
     facture = get_object_or_404(Facture, id=id)
     mouvements = Mouvement.objects.filter(facture=facture, active=True).order_by('id')
@@ -824,7 +878,7 @@ def detail_facture(request, id):
 
 
 @login_required(login_url="/connexion")
-@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR','CAISSIER', 'FACTURATION'])
+@allowed_users(allowed_roles=['GERANT', 'ADMINISTRATEUR', 'CAISSIER', 'FACTURATION'])
 def detail_facture_payee(request, id):
     # Payement
     info_payement = get_object_or_404(Payement, id=id)
@@ -857,7 +911,7 @@ def detail_facture_payee(request, id):
 
 
 @login_required(login_url="/connexion")
-@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR','FACTURATION'])
+@allowed_users(allowed_roles=['GERANT', 'ADMINISTRATEUR', 'FACTURATION'])
 def update_facture(request, id):
     titre = "Modification"
     facture = get_object_or_404(Facture, id=id)
@@ -867,6 +921,9 @@ def update_facture(request, id):
         ## Controle si payement deja enregistree
         check_facture = Payement.objects.filter(facture_id=facture, active=True).exists()
         if check_facture == False:
+            Historique.objects.create(auteur=request.user, action="Modification",
+                                      table="Gestion des Factures",
+                                      contenu=facture)
             form.save()
             messages.success(request, "Modification effectuée", extra_tags='custom-success')
             return redirect('/facture')
@@ -1017,7 +1074,7 @@ class generate_stock_general_vente(View):
 
 
 @login_required(login_url="/connexion")
-@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR','CAISSIER', 'FACTURATION'])
+@allowed_users(allowed_roles=['GERANT', 'ADMINISTRATEUR', 'CAISSIER', 'FACTURATION'])
 def payements(request):
     #payements = Payement.objects.filter(active=True).annotate(nombre_de_payements_facture=Count('facture'))
     payements = Payement.objects.filter(active=True).order_by('-id')
@@ -1028,7 +1085,7 @@ def payements(request):
 
 
 @login_required(login_url="/connexion")
-@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR','CAISSIER'])
+@allowed_users(allowed_roles=['GERANT', 'ADMINISTRATEUR', 'CAISSIER'])
 def create_payement(request):
     template_name = 'payement/form.html'
     titre = "Enregistrement"
@@ -1051,23 +1108,16 @@ def create_payement(request):
             payement.auteur = request.user
             payement.code_payement = code_payement
 
-            #total_reglee_for_facture = Payement.objects.filter(facture_id=form.cleaned_data['facture'].id, active=True).aggregate(Sum('mt_encaisse'))['mt_encaisse__sum'] or 0
-            #montant_facture = Facture.objects.get(pk=form.cleaned_data['facture'].id).calcul_montant_total()
             montant_facture_restant = Facture.objects.get(pk=form.cleaned_data['facture'].id).montant_restant()
-            payement.mt_encaisse_jour = form.cleaned_data['mt_encaisse_jour']
-
-            reliquat = form.cleaned_data['reliquat']
-
-            if reliquat < 0:
-                payement.mt_encaisse = montant_facture_restant
-            else:
-                payement.mt_encaisse = form.cleaned_data['mt_encaisse_jour']
+            payement.mt_recu = form.cleaned_data['mt_recu']
+            payement.mt_encaisse = form.cleaned_data['mt_encaisse']
 
             payement.mt_restant = montant_facture_restant - payement.mt_encaisse
-            #payement.mt_restant = montant_facture - payement.mt_encaisse - total_reglee_for_facture
-            # print(montant_facture, payement.mt_encaisse, total_reglee_for_facture, payement.mt_restant)
 
             if montant_facture_restant > 0:
+                Historique.objects.create(auteur=request.user, action="Enregistrement",
+                                          table="Gestion des Payements",
+                                          contenu=payement)
                 payement.save()
                 messages.success(request, "Enregistrement effectué", extra_tags='custom-success')
                 return redirect("/create-payement")
@@ -1108,11 +1158,14 @@ def load_mt_facture(request):
 
 
 @login_required(login_url="/connexion")
-@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR'])
+@allowed_users(allowed_roles=['GERANT', 'ADMINISTRATEUR'])
 def delete_payement(request, id):
     payement = get_object_or_404(Payement, id=id)
 
     if payement:
+        Historique.objects.create(auteur=request.user, action="Suppression",
+                                  table="Gestion des Payements",
+                                  contenu=payement)
         payement.delete()
         messages.success(request, "Suppression effectuée", extra_tags='custom-success')
         return redirect('/payement')
@@ -1123,7 +1176,7 @@ def delete_payement(request, id):
 
 
 @login_required(login_url="/connexion")
-@allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR','CAISSIER', 'FACTURATION'])
+@allowed_users(allowed_roles=['GERANT', 'ADMINISTRATEUR', 'CAISSIER', 'FACTURATION'])
 def detail_payement(request, id):
     facture = get_object_or_404(Payement, facture_id=id)
     mouvements = Mouvement.objects.filter(facture=facture, active=True).order_by('id')
@@ -1289,6 +1342,53 @@ class statistique_vente_periode_mensuelle(View):
         if pdf:
             response=HttpResponse(pdf, content_type='application/pdf')
             filename = "Statistique_Ventes_%s.pdf" %(data['today'])
+            content = "inline; filename= %s" %(filename)
+            response['Content-Disposition']=content
+            return response
+        return HttpResponse("Page Not Found")
+
+
+class statistique_facture_reste_avec_penalite(View):
+    def get(self, request, *args, **kwargs):
+
+        # Obtenez la liste de toutes les factures
+        toutes_les_factures = Facture.objects.all()
+
+        # Créez un dictionnaire pour stocker les informations pour chaque facture
+        informations_factures = []
+
+        for facture in toutes_les_factures:
+            montant_restant = facture.montant_restant()
+            # Check if montant_restant is 0 and skip the facture
+            if montant_restant == 0:
+                continue
+            jours_diff = (date.today() - facture.date_facture).days
+            penalite = 0.002  # 0.2%
+            montant_penalite = round(montant_restant * penalite, 4) if jours_diff > 7 else 0
+            montant_a_payer = montant_restant + montant_penalite
+            montant_encaisse = sum(paiement.mt_encaisse for paiement in facture.payement_set.filter(active=True))
+
+            informations_factures.append({
+                'code_facture': facture.code_facture,
+                'date_facture': facture.date_facture,
+                'montant_restant': montant_restant,
+                'jours_diff': jours_diff,
+                'montant_penalite': montant_penalite,
+                'montant_a_payer': montant_a_payer,
+                'montant_encaisse': montant_encaisse
+            })
+
+        data = {
+            'today': datetime.date.today().strftime("%d-%m-%Y"),
+            'informations_factures': informations_factures,
+
+        }
+
+        pdf = render_to_pdf('pdf/statistique_facture_reste_penalite.html', data)
+
+        if pdf:
+            response=HttpResponse(pdf, content_type='application/pdf')
+            filename = "Statistique_Reste_Penalite_%s.pdf" %(data['today'])
             content = "inline; filename= %s" %(filename)
             response['Content-Disposition']=content
             return response
