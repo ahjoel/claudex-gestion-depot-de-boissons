@@ -243,7 +243,7 @@ class Mouvement(models.Model):
 class Payement(models.Model):
     auteur = models.ForeignKey(User, on_delete=models.PROTECT)
     code_payement = models.CharField(max_length=100, unique=True)
-    moder = models.ForeignKey(ModeR, on_delete=models.PROTECT, default=1)
+    moder = models.ForeignKey(ModeR, on_delete=models.PROTECT, default=0)
     date_payement = models.DateField()
     facture = models.ForeignKey(Facture, on_delete=models.PROTECT)
     mt_encaisse = models.IntegerField(default=0)

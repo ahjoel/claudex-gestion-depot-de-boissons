@@ -1097,7 +1097,9 @@ def load_mt_facture(request):
     if factId:
         facture_instance = Facture.objects.get(id=factId, active=True)
         total_amount = facture_instance.calcul_montant_total()
+        print('ok1')
         total_restant = facture_instance.montant_restant()
+        print('ok2')
         mt_fact = total_amount or 0
         mt_fact_rest = total_restant or 0
         return JsonResponse([mt_fact, mt_fact_rest], safe=False)
