@@ -1,7 +1,7 @@
 from django.urls import path
 from . import views
 from .views import generate_facture_a_payer, generate_facture_payer, generate_stock_general_vente, statistique_vente_periode,\
-    statistique_vente_periode_mensuelle, statistique_facture_reste_avec_penalite, liste_clients, liste_produits
+    statistique_vente_periode_mensuelle, statistique_facture_reste_avec_penalite, liste_clients, liste_produits, liste_archivage_facture
 
 urlpatterns = [
     path('', views.home, name='home'),
@@ -54,5 +54,6 @@ urlpatterns = [
     path('statistique-facture-reste-penalite', statistique_facture_reste_avec_penalite.as_view(), name='statistique-facture-reste-penalite'),
     path('liste-client', liste_clients.as_view(), name='liste-client'),
     path('liste-produit', liste_produits.as_view(), name='liste-produit'),
+    path('liste-facture', liste_archivage_facture.as_view(), name='liste-facture'),
     path('connexion', views.custom_login, name='connexion'),
 ]
