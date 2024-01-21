@@ -134,13 +134,25 @@
                   <li><a><i class="fa fa-file-pdf-o"></i> Listings <span class="fa fa-chevron-down"></span></a>
                     <ul class="nav child_menu">
                       <li>
-                        <a href="{% url 'statistique-vente-periode' %}" class="{% if url == 'facture' %}active{% endif %}"><i class="fa fa-file"></i> Statistiques Ventes</a>
+                        <a href="{% url 'statistique-vente-periode' %}"><i class="fa fa-file"></i> Statistiques Ventes</a>
+                      </li>
+                      <li>
+                        <a href="{% url 'liste-client' %}" target="_blank"><i class="fa fa-file"></i> Liste des Clients</a>
+                      </li>
+                      <li>
+                        <a href="{% url 'liste-produit' %}" target="_blank"><i class="fa fa-file"></i> Liste des Produits</a>
                       </li>
                       <li>
                         <a><i class="fa fa-file"></i> Archivage Facture</a>
                       </li>
                       <li>
+                        <a href="{% url 'generate-stock-general-vente' %}" target="_blank"><i class="fa fa-file"></i> Inventaires Stock Ventes</a>
+                      </li>
+                      <li>
                         <a href="{% url 'statistique-facture-reste-penalite' %}" target="_blank"><i class="fa fa-file"></i> Suivi Restes et Pénalités</a>
+                      </li>
+                      <li>
+                        <a href="{% url 'statistique-vente-periode-mensuelle' %}" target="_blank"><i class="fa fa-file"></i> Statistiques Ventes Mensuelle</a>
                       </li>
                     </ul>
                  

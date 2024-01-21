@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport"  content="text/html; charset=utf-8">
+    {% load humanize %}
+    <title>Liste des Clients </title>
+    <style>
+        body {
+            font-family: Arial;
+            font-size: 100%;
+        }
+        @page {
+            size: A4 portrait;
+            margin: 1cm;
+        }
+        .invoice-container {
+            max-width: 400px;
+            margin: 5px auto;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 5px;
+        }
+
+        .invoice-header {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .invoice-header h1 {
+            color: #333;
+        }
+
+        .invoice-details {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .invoice-details .left {
+            max-width: 20%;
+        }
+
+        .invoice-details .right {
+            text-align: right;
+            max-width: 20%;
+        }
+
+        .invoice-items {
+            margin-top: 5px;
+        }
+
+        .invoice-items table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 5px;
+        }
+
+        .invoice-items th, .invoice-items td {
+            border: 1px solid #1c1b1b;
+            padding: 3px;
+            text-align: left;
+        }
+
+        .invoice-total {
+            margin-top: 20px;
+            text-align: right;
+            width: 150px;
+        }
+
+
+        .footerr {
+            margin-top: 5px;
+            text-align: left;
+            color: #171616;
+        }
+
+        .bot {
+            position: absolute;
+            bottom: -20px; /* Ajustez selon vos besoins */
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 10px;
+        }
+
+    </style>
+</head>
+<body>
+<div class="invoice-container">
+        <div class="invoice-header">
+            <h1>CLAUDEX - Liste des CLients</h1>
+        </div>
+
+        {% if clients|length > 0 %}
+        <div class="invoice-items">
+            <table repeat="1">
+                <thead>
+                    <tr>
+                      <th style="width: 30px;">#</th>
+                      <th style="width: 60px;">CODE</th>
+                      <th>CLIENT</th>
+                      <th>TYPE</th>
+                      <th>VILLE</th>
+                      <th>TELEPHONE</th>
+                      <th style="width: 150px;">MAIL</th>
+                    </tr>
+                </thead>
+                 <tbody>
+                    {% for client in clients %}
+                    <tr>
+                      <td>{{ forloop.counter }}</td>
+                      <td>{{ client.code }}</td>
+                      <td>{{ client.rs }}</td>
+                      <td>{{ client.type }}</td>
+                      <td>{{ client.ville }}</td>
+                      <td>{{ client.tel }}</td>
+                      <td>{{ client.mail }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+             {% else %}
+                    <p>Aucun enregistrement disponible :-)</p>
+            {% endif %}
+        </div>
+
+    </div>
+
+<div class="bot">
+    <span style="text-align: center"> AGOE AMANDETA EPP Amandeta Face Antenne Togocom; Tel :(+228) 92 80 26 38 </span>
+    <br>
+    Page <pdf:pagenumber> / <pdf:pagecount> - Vente en gros et en détails des produits BB et SNB
+</div>
+
+</body>
+</html>

@@ -1092,7 +1092,6 @@ def create_payement(request):
     template_name = 'payement/form.html'
     titre = "Enregistrement"
     date_paiement_form = datetime.date.today().strftime("%Y-%m-%d")
-    #id_max = Payement.objects.filter(active=True).count()
     id_max = Payement.objects.filter(active=True).aggregate(max_id=Coalesce(Max('id'), 0))['max_id']
     today = datetime.date.today()
     annee = today.year
@@ -1390,6 +1389,49 @@ class statistique_facture_reste_avec_penalite(View):
         if pdf:
             response=HttpResponse(pdf, content_type='application/pdf')
             filename = "Statistique_Reste_Penalite_%s.pdf" %(data['today'])
+            content = "inline; filename= %s" %(filename)
+            response['Content-Disposition']=content
+            return response
+        return HttpResponse("Page Not Found")
+
+
+class liste_clients(View):
+    def get(self, request, *args, **kwargs):
+
+        clients = Client.objects.filter(active=True).all()
+
+        data = {
+            'today': datetime.date.today().strftime("%d-%m-%Y"),
+            'clients': clients,
+
+        }
+
+        pdf = render_to_pdf('pdf/liste_clients.html', data)
+
+        if pdf:
+            response=HttpResponse(pdf, content_type='application/pdf')
+            filename = "Liste_clients_%s.pdf" %(data['today'])
+            content = "inline; filename= %s" %(filename)
+            response['Content-Disposition']=content
+            return response
+        return HttpResponse("Page Not Found")
+
+
+class liste_produits(View):
+    def get(self, request, *args, **kwargs):
+
+        produits = Produit.objects.all().order_by('producteur')
+
+        data = {
+            'today': datetime.date.today().strftime("%d-%m-%Y"),
+            'produits': produits,
+        }
+
+        pdf = render_to_pdf('pdf/liste_produits.html', data)
+
+        if pdf:
+            response=HttpResponse(pdf, content_type='application/pdf')
+            filename = "Liste_produits_%s.pdf" %(data['today'])
             content = "inline; filename= %s" %(filename)
             response['Content-Disposition']=content
             return response
