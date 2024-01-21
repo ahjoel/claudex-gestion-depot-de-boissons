@@ -1,13 +1,15 @@
 import datetime
+import math
 
 import num2words as num2words
 from django.contrib.auth.models import User
 from django.db import models, IntegrityError
+from django.db.models.functions import Coalesce
 from django.utils.datetime_safe import date
 from num2words import num2words
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum, ExpressionWrapper, F, DecimalField, Count
+from django.db.models import Sum, ExpressionWrapper, F, DecimalField, Count, Max
 from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login
@@ -1090,7 +1092,8 @@ def create_payement(request):
     template_name = 'payement/form.html'
     titre = "Enregistrement"
     date_paiement_form = datetime.date.today().strftime("%Y-%m-%d")
-    id_max = Payement.objects.filter(active=True).count()
+    #id_max = Payement.objects.filter(active=True).count()
+    id_max = Payement.objects.filter(active=True).aggregate(max_id=Coalesce(Max('id'), 0))['max_id']
     today = datetime.date.today()
     annee = today.year
     mois = today.month
@@ -1147,9 +1150,7 @@ def load_mt_facture(request):
     if factId:
         facture_instance = Facture.objects.get(id=factId, active=True)
         total_amount = facture_instance.calcul_montant_total()
-        print('ok1')
         total_restant = facture_instance.montant_restant()
-        print('ok2')
         mt_fact = total_amount or 0
         mt_fact_rest = total_restant or 0
         return JsonResponse([mt_fact, mt_fact_rest], safe=False)
@@ -1364,8 +1365,8 @@ class statistique_facture_reste_avec_penalite(View):
                 continue
             jours_diff = (date.today() - facture.date_facture).days
             penalite = 0.002  # 0.2%
-            montant_penalite = round(montant_restant * penalite, 4) if jours_diff > 7 else 0
-            montant_a_payer = montant_restant + montant_penalite
+            montant_penalite = math.ceil(round(montant_restant * penalite, 4)) if jours_diff > 7 else 0
+            montant_a_payer = math.ceil(montant_restant + montant_penalite)
             montant_encaisse = sum(paiement.mt_encaisse for paiement in facture.payement_set.filter(active=True))
 
             informations_factures.append({
