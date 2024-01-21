@@ -1438,6 +1438,26 @@ class liste_produits(View):
         return HttpResponse("Page Not Found")
 
 
+class liste_archivage_facture(View):
+    def get(self, request, *args, **kwargs):
+
+        factures = Facture.objects.filter(payement__mt_encaisse__gt=0).distinct()
+        print('facture', factures)
+        data = {
+            'today': datetime.date.today().strftime("%d-%m-%Y"),
+            'factures': factures,
+        }
+
+        pdf = render_to_pdf('pdf/liste_factures.html', data)
+
+        if pdf:
+            response=HttpResponse(pdf, content_type='application/pdf')
+            filename = "Liste_factures_%s.pdf" %(data['today'])
+            content = "inline; filename= %s" %(filename)
+            response['Content-Disposition']=content
+            return response
+        return HttpResponse("Page Not Found")
+
 def custom_404(request, exception):
     return render(request, 'accueil/404.html', status=404)
 

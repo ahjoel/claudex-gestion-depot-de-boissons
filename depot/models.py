@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import Sum, F, ExpressionWrapper, DecimalField, Func
 from django.db.models.functions import TruncMonth
+from django.utils import timezone
 
 
 # Create your models here.
@@ -232,6 +233,11 @@ class Facture(models.Model):
 
         return montant_restant_par_mois
     # End Test
+
+    @property
+    def date_echeance(self):
+        # Calculer la date d'échéance comme la date_facture + 7 jours
+        return self.date_facture + timezone.timedelta(days=7)
 
 
 class Mouvement(models.Model):
