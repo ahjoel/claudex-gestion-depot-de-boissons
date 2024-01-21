@@ -1,13 +1,15 @@
 import datetime
+import math
 
 import num2words as num2words
 from django.contrib.auth.models import User
 from django.db import models, IntegrityError
+from django.db.models.functions import Coalesce
 from django.utils.datetime_safe import date
 from num2words import num2words
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum, ExpressionWrapper, F, DecimalField, Count
+from django.db.models import Sum, ExpressionWrapper, F, DecimalField, Count, Max
 from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login
@@ -1090,7 +1092,7 @@ def create_payement(request):
     template_name = 'payement/form.html'
     titre = "Enregistrement"
     date_paiement_form = datetime.date.today().strftime("%Y-%m-%d")
-    id_max = Payement.objects.filter(active=True).count()
+    id_max = Payement.objects.filter(active=True).aggregate(max_id=Coalesce(Max('id'), 0))['max_id']
     today = datetime.date.today()
     annee = today.year
     mois = today.month
@@ -1362,8 +1364,8 @@ class statistique_facture_reste_avec_penalite(View):
                 continue
             jours_diff = (date.today() - facture.date_facture).days
             penalite = 0.002  # 0.2%
-            montant_penalite = round(montant_restant * penalite, 4) if jours_diff > 7 else 0
-            montant_a_payer = montant_restant + montant_penalite
+            montant_penalite = math.ceil(round(montant_restant * penalite, 4)) if jours_diff > 7 else 0
+            montant_a_payer = math.ceil(montant_restant + montant_penalite)
             montant_encaisse = sum(paiement.mt_encaisse for paiement in facture.payement_set.filter(active=True))
 
             informations_factures.append({
@@ -1387,6 +1389,49 @@ class statistique_facture_reste_avec_penalite(View):
         if pdf:
             response=HttpResponse(pdf, content_type='application/pdf')
             filename = "Statistique_Reste_Penalite_%s.pdf" %(data['today'])
+            content = "inline; filename= %s" %(filename)
+            response['Content-Disposition']=content
+            return response
+        return HttpResponse("Page Not Found")
+
+
+class liste_clients(View):
+    def get(self, request, *args, **kwargs):
+
+        clients = Client.objects.filter(active=True).all()
+
+        data = {
+            'today': datetime.date.today().strftime("%d-%m-%Y"),
+            'clients': clients,
+
+        }
+
+        pdf = render_to_pdf('pdf/liste_clients.html', data)
+
+        if pdf:
+            response=HttpResponse(pdf, content_type='application/pdf')
+            filename = "Liste_clients_%s.pdf" %(data['today'])
+            content = "inline; filename= %s" %(filename)
+            response['Content-Disposition']=content
+            return response
+        return HttpResponse("Page Not Found")
+
+
+class liste_produits(View):
+    def get(self, request, *args, **kwargs):
+
+        produits = Produit.objects.all().order_by('producteur')
+
+        data = {
+            'today': datetime.date.today().strftime("%d-%m-%Y"),
+            'produits': produits,
+        }
+
+        pdf = render_to_pdf('pdf/liste_produits.html', data)
+
+        if pdf:
+            response=HttpResponse(pdf, content_type='application/pdf')
+            filename = "Liste_produits_%s.pdf" %(data['today'])
             content = "inline; filename= %s" %(filename)
             response['Content-Disposition']=content
             return response
