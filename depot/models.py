@@ -100,7 +100,7 @@ class Produit(models.Model):
 class Client(models.Model):
     auteur = models.ForeignKey(User, on_delete=models.PROTECT)
     code = models.CharField(max_length=20, blank=False, null=False)
-    rs = models.CharField(max_length=80, blank=False, null=False, unique=True)
+    rs = models.CharField(max_length=80, blank=False, null=False)
     type = models.CharField(max_length=30, blank=True, null=True)
     ville = models.CharField(max_length=30, blank=True, null=True)
     tel = models.CharField(max_length=30, blank=True, null=True)
