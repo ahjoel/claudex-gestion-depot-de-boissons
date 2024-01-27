@@ -22,6 +22,8 @@ from .models import ModelB, Producteur, Produit, Client, ModeR, Mouvement, Factu
 from .utils import render_to_pdf
 
 
+# Table Historique pour la journalisation de toutes les actions des utilisateurs
+# Authentification personnalisée
 def custom_login(request):
     form = CustomAuthenticationForm()
     message = ""
@@ -49,6 +51,7 @@ def custom_login(request):
     return render(request, 'registration/login.html', context)
 
 
+# Page d'accueil apres authentification
 @login_required(login_url="/connexion")
 def home(request):
     total_clt_count = Client.objects.filter(active=True).count()
@@ -127,6 +130,7 @@ def home(request):
     return render(request, 'accueil/accueil.html', context)
 
 
+# Gestion des Models
 @login_required(login_url="/connexion")
 @allowed_users(allowed_roles=['GERANT', 'ADMINISTRATEUR', 'CAISSIER', 'FACTURATION'])
 def gmodels(request):
@@ -1198,7 +1202,9 @@ def detail_payement(request, id):
 
 
 # Listing
-def statistique_ventes(request):
+
+# Caisse
+def statistique_caisses(request):
     start_date = datetime.date.today().strftime("%Y-%m-%d")
     end_date = datetime.date.today().strftime("%Y-%m-%d")
     total_montant_factures, total_montant_encaisses, total_montant_restants = 0, 0, 0
@@ -1217,6 +1223,7 @@ def statistique_ventes(request):
                         'payement_id': paiement.id,
                         'facture': paiement.facture,
                         'code_facture': paiement.facture.code_facture,
+                        'date_payement': paiement.date_payement,
                         'client': paiement.facture.client,
                         'date_facture': paiement.facture.date_facture,
                         'montant_facture': paiement.facture.calcul_montant_total(),
@@ -1235,6 +1242,7 @@ def statistique_ventes(request):
     else:
         factures_sommes = None
         form = StatistiqueForm()
+        # 'today': datetime.date.today().strftime("%d-%m-%Y"),
 
     context = {
         'start_date': start_date,
@@ -1245,10 +1253,10 @@ def statistique_ventes(request):
         'total_montant_restants': total_montant_restants,
         'form': form,
     }
-    return render(request, 'listings/statistique_vente.html', context)
+    return render(request, 'listings/statistique_caisse.html', context)
 
 
-class statistique_vente_periode(View):
+class statistique_caisse_periode(View):
     def get(self, request, start_date, end_date, *args, **kwargs):
         total_montant_factures, total_montant_encaisses, total_montant_restants = 0, 0, 0
         statistiques_ventes = Payement.paiements_pour_periode(start_date, end_date)
@@ -1261,6 +1269,7 @@ class statistique_vente_periode(View):
                     'payement_id': paiement.id,
                     'facture': paiement.facture,
                     'code_facture': paiement.facture.code_facture,
+                    'date_payement': paiement.date_payement,
                     'client': paiement.facture.client,
                     'date_facture': paiement.facture.date_facture,
                     'montant_facture': paiement.facture.calcul_montant_total(),
@@ -1277,7 +1286,6 @@ class statistique_vente_periode(View):
             total_montant_encaisses += values['montant_encaisse']
             total_montant_restants += values['montant_restant']
 
-
         data = {
             "start_date": start_date,
             "end_date": end_date,
@@ -1288,18 +1296,18 @@ class statistique_vente_periode(View):
             'total_montant_restants': total_montant_restants,
         }
 
-        pdf = render_to_pdf('pdf/statistique_vente_periode.html', data)
+        pdf = render_to_pdf('pdf/statistique_caisse_periode.html', data)
 
         if pdf:
             response=HttpResponse(pdf, content_type='application/pdf')
-            filename = "Statistique_Ventes_%s.pdf" %(data['today'])
+            filename = "Statistique_caisses_%s.pdf" %(data['today'])
             content = "inline; filename= %s" %(filename)
             response['Content-Disposition']=content
             return response
         return HttpResponse("Page Not Found")
 
 
-class statistique_vente_periode_mensuelle(View):
+class statistique_caisse_periode_mensuelle(View):
     def get(self, request, *args, **kwargs):
         start_date = "2023-12-01"
         end_date = datetime.date.today().strftime("%Y-%m-%d")
@@ -1337,11 +1345,167 @@ class statistique_vente_periode_mensuelle(View):
             'total_montant_restant': total_montant_restant,
         }
 
-        pdf = render_to_pdf('pdf/statistique_vente_periode_mensuelle.html', data)
+        pdf = render_to_pdf('pdf/statistique_caisse_periode_mensuelle.html', data)
 
         if pdf:
             response=HttpResponse(pdf, content_type='application/pdf')
-            filename = "Statistique_Ventes_%s.pdf" %(data['today'])
+            filename = "Statistique_caisses_periode_%s.pdf" %(data['today'])
+            content = "inline; filename= %s" %(filename)
+            response['Content-Disposition']=content
+            return response
+        return HttpResponse("Page Not Found")
+# Fin Caisse
+
+
+# Vente - Facture editees
+def statistique_ventes(request):
+    start_date = datetime.date.today().strftime("%Y-%m-%d")
+    end_date = datetime.date.today().strftime("%Y-%m-%d")
+    total_montant_factures, total_montant_encaisses, total_montant_restants = 0, 0, 0
+    if request.method == 'POST':
+        form = StatistiqueForm(request.POST)
+        start_date = request.POST['start_date']
+        end_date = request.POST['end_date']
+        if form.is_valid():
+            # Obtenez la liste de toutes les factures
+            toutes_les_factures = Facture.factures_pour_periode(start_date, end_date)
+
+            # Créez un dictionnaire pour stocker les informations pour chaque facture
+            informations_factures = []
+
+            for facture in toutes_les_factures:
+                montant_facture = facture.calcul_montant_total()
+                montant_encaisse = sum(paiement.mt_encaisse for paiement in facture.payement_set.filter(active=True))
+                montant_restant = facture.montant_restant_par_rapport_total_facture()
+
+                informations_factures.append({
+                    'facture_id': facture.id,
+                    'code_facture': facture.code_facture,
+                    'client': facture.client,
+                    'date_facture': facture.date_facture,
+                    'montant_facture': montant_facture,
+                    'montant_restant': montant_restant,
+                    'montant_encaisse': montant_encaisse
+                })
+
+            for values in informations_factures:
+                total_montant_factures += values['montant_facture']
+                total_montant_encaisses += values['montant_encaisse']
+                total_montant_restants += values['montant_restant']
+
+    else:
+        informations_factures = None
+        form = StatistiqueForm()
+        # 'today': datetime.date.today().strftime("%d-%m-%Y"),
+
+    context = {
+        'start_date': start_date,
+        'end_date': end_date,
+        'informations_factures': informations_factures,
+        'total_montant_factures': total_montant_factures,
+        'total_montant_encaisses': total_montant_encaisses,
+        'total_montant_restants': total_montant_restants,
+        'form': form,
+    }
+    return render(request, 'listings/statistique_vente.html', context)
+
+
+class statistique_vente_periode(View):
+    def get(self, request, start_date, end_date, *args, **kwargs):
+        total_montant_factures, total_montant_encaisses, total_montant_restants = 0, 0, 0
+
+        # Obtenez la liste de toutes les factures
+        toutes_les_factures = Facture.factures_pour_periode(start_date, end_date)
+
+        # Créez un dictionnaire pour stocker les informations pour chaque facture
+        informations_factures = []
+
+        for facture in toutes_les_factures:
+            montant_facture = facture.calcul_montant_total()
+            montant_encaisse = sum(
+                paiement.mt_encaisse for paiement in facture.payement_set.filter(active=True))
+            montant_restant = facture.montant_restant_par_rapport_total_facture()
+
+            informations_factures.append({
+                'facture_id': facture.id,
+                'code_facture': facture.code_facture,
+                'client': facture.client,
+                'date_facture': facture.date_facture,
+                'montant_facture': montant_facture,
+                'montant_restant': montant_restant,
+                'montant_encaisse': montant_encaisse
+            })
+
+        for values in informations_factures:
+            total_montant_factures += values['montant_facture']
+            total_montant_encaisses += values['montant_encaisse']
+            total_montant_restants += values['montant_restant']
+
+        data = {
+            "start_date": start_date,
+            "end_date": end_date,
+            'today': datetime.date.today().strftime("%d-%m-%Y"),
+            'informations_factures': informations_factures,
+            'total_montant_factures': total_montant_factures,
+            'total_montant_encaisses': total_montant_encaisses,
+            'total_montant_restants': total_montant_restants,
+        }
+
+        pdf = render_to_pdf('pdf/statistique_vente_periode.html', data)
+
+        if pdf:
+            response=HttpResponse(pdf, content_type='application/pdf')
+            filename = "Statistique_ventes_%s.pdf" %(data['today'])
+            content = "inline; filename= %s" %(filename)
+            response['Content-Disposition']=content
+            return response
+        return HttpResponse("Page Not Found")
+# Fin Vente - Facture editees
+
+
+class statistique_caisse_periode_mensuelle(View):
+    def get(self, request, *args, **kwargs):
+        start_date = "2023-12-01"
+        end_date = datetime.date.today().strftime("%Y-%m-%d")
+
+        # Test - Statistique Mensuelle
+        montant_total_factures_par_mois = Facture.montant_total_factures_par_mois()
+        montant_total_encaisse_par_mois = Facture.montant_total_encaisse_par_mois()
+        montant_total_restant_par_mois = Facture.montant_total_restant_par_mois()
+
+        total_montant_total = sum(item['montant_total'] for item in montant_total_factures_par_mois)
+        total_montant_encaisse = sum(item['montant_encaisse'] for item in montant_total_encaisse_par_mois)
+        total_montant_restant = sum(item['montant_restant'] for item in montant_total_restant_par_mois)
+
+        # End Test
+
+        data = {
+            "start_date": start_date,
+            "end_date": end_date,
+            'today': datetime.date.today().strftime("%d-%m-%Y"),
+            'montant_total_factures_par_mois': montant_total_factures_par_mois,
+            'montants': [
+                {
+                    'mois': item['mois'],
+                    'montant_total': item['montant_total'],
+                    'montant_encaisse': next(
+                        (x['montant_encaisse'] for x in montant_total_encaisse_par_mois if x['mois'] == item['mois']),
+                        0),
+                    'montant_restant': next(
+                        (x['montant_restant'] for x in montant_total_restant_par_mois if x['mois'] == item['mois']), 0),
+                }
+                for item in montant_total_factures_par_mois
+            ],
+            'total_montant_total': total_montant_total,
+            'total_montant_encaisse': total_montant_encaisse,
+            'total_montant_restant': total_montant_restant,
+        }
+
+        pdf = render_to_pdf('pdf/statistique_caisse_periode_mensuelle.html', data)
+
+        if pdf:
+            response=HttpResponse(pdf, content_type='application/pdf')
+            filename = "Statistique_caisses_periode_%s.pdf" %(data['today'])
             content = "inline; filename= %s" %(filename)
             response['Content-Disposition']=content
             return response
@@ -1358,7 +1522,7 @@ class statistique_facture_reste_avec_penalite(View):
         informations_factures = []
 
         for facture in toutes_les_factures:
-            montant_restant = facture.montant_restant()
+            montant_restant = facture.montant_restant_par_rapport_total_facture()
             # Check if montant_restant is 0 and skip the facture
             if montant_restant == 0:
                 continue
