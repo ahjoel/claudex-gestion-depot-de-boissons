@@ -1,7 +1,8 @@
 from django.urls import path
 from . import views
-from .views import generate_facture_a_payer, generate_facture_payer, generate_stock_general_vente, statistique_vente_periode,\
-    statistique_vente_periode_mensuelle, statistique_facture_reste_avec_penalite, liste_clients, liste_produits, liste_archivage_facture
+from .views import generate_facture_a_payer, generate_facture_payer, generate_stock_general_vente, \
+    statistique_facture_reste_avec_penalite, liste_clients, liste_produits, \
+    liste_archivage_facture, statistique_caisse_periode, statistique_caisse_periode_mensuelle, statistique_vente_periode
 
 urlpatterns = [
     path('', views.home, name='home'),
@@ -48,9 +49,11 @@ urlpatterns = [
     path('create-payement', views.create_payement, name='create-payement'),
     path('delete-payement/<int:id>', views.delete_payement, name='delete-payement'),
     path('detail-payement/<int:id>', views.detail_facture_payee, name='detail-payement'),
+    path('statistique-caisse-periode/', views.statistique_caisses, name='statistique-caisse-periode'),
+    path('statistique-caisse-periode/<start_date>/<end_date>', statistique_caisse_periode.as_view(), name='statistique-caisse-periode'),
+    path('statistique-caisse-periode-mensuelle', statistique_caisse_periode_mensuelle.as_view(), name='statistique-caisse-periode-mensuelle'),
     path('statistique-vente-periode/', views.statistique_ventes, name='statistique-vente-periode'),
     path('statistique-vente-periode/<start_date>/<end_date>', statistique_vente_periode.as_view(), name='statistique-vente-periode'),
-    path('statistique-vente-periode-mensuelle', statistique_vente_periode_mensuelle.as_view(), name='statistique-vente-periode-mensuelle'),
     path('statistique-facture-reste-penalite', statistique_facture_reste_avec_penalite.as_view(), name='statistique-facture-reste-penalite'),
     path('liste-client', liste_clients.as_view(), name='liste-client'),
     path('liste-produit', liste_produits.as_view(), name='liste-produit'),

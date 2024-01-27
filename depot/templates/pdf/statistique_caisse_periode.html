@@ -6,14 +6,14 @@
     <meta name="viewport"  content="text/html; charset=utf-8">
     {% load humanize %}
     {% load i18n %}
-    <title>Statistique Vente Période - Mensuelle </title>
+    <title>Statistique Caisse Période </title>
     <style>
         body {
             font-family: Arial;
             font-size: 100%;
         }
         @page {
-            size: A4 portrait;
+            size: A4 landscape;
             margin: 1cm;
         }
         .invoice-container {
@@ -90,43 +90,47 @@
 <body>
 <div class="invoice-container">
         <div class="invoice-header">
-            <h1>CLAUDEX - Statistique Vente Mensuelle</h1>
+            <h1>CLAUDEX - Statistique Caisse du {{start_date}} au {{end_date}}</h1>
         </div>
 
-
-        {% if montants|length > 0 %}
-
+        {% if factures_sommes|length > 0 %}
         <div class="invoice-items">
             <table repeat="1">
                 <thead>
                     <tr>
-                      <th style="width: 50px">#</th>
-                      <th>MOIS</th>
+                      <th style="width: 50px;">#</th>
+                      <th>FACTURE</th>
+                      <th>DATE FACTURE</th>
+                      <th>DATE PAYEMENT</th>
+                      <th>CLIENT</th>
                       <th>MONTANT TTC</th>
                       <th>TOTAL ENCAISSE</th>
                       <th>MONTANT RESTANT</th>
                     </tr>
                 </thead>
                  <tbody>
-                    {% for item in montants %}
+                    {% for facture_id, values in factures_sommes.items %}
                         <tr>
                           <td>{{ forloop.counter }}</td>
-                          <td>{{ item.mois }}</td>
-                          <td>{{ item.montant_total|intcomma }}</td>
-                          <td>{{ item.montant_encaisse|intcomma }}</td>
-                          <td>{{ item.montant_restant|intcomma }}</td>
+                          <td>{{ values.code_facture }}</td>
+                          <td>{{ values.date_facture }}</td>
+                          <td>{{ values.date_payement }}</td>
+                          <td>{{ values.client }}</td>
+                          <td>{{ values.montant_facture|intcomma }}</td>
+                          <td>{{ values.montant_encaisse|intcomma }}</td>
+                          <td>{{ values.montant_restant|intcomma }}</td>
                         </tr>
-                    {% endfor %}
+                      {% endfor %}
                 </tbody>
                 <tfoot>
-                    <tr>
-                      <td colspan="2">TOTAL</td>
-                      <td><strong>{{ total_montant_total|intcomma }}</strong></td>
-                      <td><strong>{{ total_montant_encaisse|intcomma }}</strong></td>
-                      <td><strong>{{ total_montant_restant|intcomma }}</strong></td>
-                    </tr>
+                   <tr>
+                        <td colspan="6" style="text-align: right">TOTAL FACTURE <strong>{{total_montant_factures|intcomma}}</strong></td>
+                        <td>TOTAL ENCAISSE <strong>{{total_montant_encaisses|intcomma}}</strong></td>
+                        <td>TOTAL RESTANT <strong>{{total_montant_restants|intcomma}}</strong></td>
+                   </tr>
                 </tfoot>
             </table>
+            <br>
              {% else %}
                     <p>Aucun enregistrement disponible :-)</p>
             {% endif %}

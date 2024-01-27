@@ -3,8 +3,7 @@ from datetime import datetime, date
 
 from django.contrib.auth.models import User
 from django.db import models
-from django.db.models import Sum, F, ExpressionWrapper, DecimalField, Func
-from django.db.models.functions import TruncMonth
+from django.db.models import Sum, DecimalField, Func
 from django.utils import timezone
 
 
@@ -100,7 +99,7 @@ class Produit(models.Model):
 class Client(models.Model):
     auteur = models.ForeignKey(User, on_delete=models.PROTECT)
     code = models.CharField(max_length=20, blank=False, null=False)
-    rs = models.CharField(max_length=80, blank=False, null=False, unique=True)
+    rs = models.CharField(max_length=80, blank=False, null=False)
     type = models.CharField(max_length=30, blank=True, null=True)
     ville = models.CharField(max_length=30, blank=True, null=True)
     tel = models.CharField(max_length=30, blank=True, null=True)
@@ -163,6 +162,15 @@ class Facture(models.Model):
         self.mt_ttc = montant_ttc
         self.save()
         return montant_ttc or 0
+
+    def montant_restant_par_rapport_total_facture(self):
+        # Calcule le montant restant en soustrayant le montant encaissé de la somme totale
+        montant_encaisse = sum(paiement.mt_encaisse for paiement in self.payement_set.filter(active=True))
+        montant_restant = self.calcul_montant_total() - montant_encaisse
+
+        self.montant_restant = montant_restant
+        self.save()
+        return montant_restant
 
     def montant_restant(self):
         # Calcule le montant restant en soustrayant le montant encaissé de la somme totale
@@ -238,6 +246,10 @@ class Facture(models.Model):
     def date_echeance(self):
         # Calculer la date d'échéance comme la date_facture + 7 jours
         return self.date_facture + timezone.timedelta(days=7)
+
+    @classmethod
+    def factures_pour_periode(cls, debut_periode, fin_periode):
+        return cls.objects.filter(date_facture__range=[debut_periode, fin_periode], active=True)
 
 
 class Mouvement(models.Model):

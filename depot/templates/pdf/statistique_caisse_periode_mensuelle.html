@@ -6,7 +6,7 @@
     <meta name="viewport"  content="text/html; charset=utf-8">
     {% load humanize %}
     {% load i18n %}
-    <title>Statistique Facture Impayées </title>
+    <title>Statistique Caisse Période - Mensuelle </title>
     <style>
         body {
             font-family: Arial;
@@ -90,43 +90,44 @@
 <body>
 <div class="invoice-container">
         <div class="invoice-header">
-            <h1>CLAUDEX - Suivi des Restes avec ou sans Penalités du {{today}}</h1>
+            <h1>CLAUDEX - Statistique Caisse Mensuelle</h1>
         </div>
 
-        {% if informations_factures|length > 0 %}
+
+        {% if montants|length > 0 %}
 
         <div class="invoice-items">
             <table repeat="1">
                 <thead>
                     <tr>
-                      <th style="width: 20px">#</th>
-                      <th  style="width: 150px">FACTURE</th>
-                      <th>Date Fact.</th>
-                      <th>R. A PAYER</th>
-                      <th>Nbr. Jours</th>
-                      <th>Mt. Penalité</th>
-                      <th>Mt. A Payer</th>
-                      <th>Mt. Versé</th>
+                      <th style="width: 50px">#</th>
+                      <th>MOIS</th>
+                      <th>MONTANT TTC</th>
+                      <th>TOTAL ENCAISSE</th>
+                      <th>MONTANT RESTANT</th>
                     </tr>
                 </thead>
                  <tbody>
-                    {% for infos in informations_factures %}
+                    {% for item in montants %}
                         <tr>
                           <td>{{ forloop.counter }}</td>
-                          <td>{{ infos.code_facture }}</td>
-                          <td>{{ infos.date_facture }}</td>
-                          <td>{{ infos.montant_restant|intcomma }}</td>
-                          <td>{{ infos.jours_diff|intcomma }}</td>
-                          <td>{{ infos.montant_penalite|intcomma }}</td>
-                          <td>{{ infos.montant_a_payer|intcomma }}</td>
-                          <td>{{ infos.montant_encaisse|intcomma }}</td>
+                          <td>{{ item.mois }}</td>
+                          <td>{{ item.montant_total|intcomma }}</td>
+                          <td>{{ item.montant_encaisse|intcomma }}</td>
+                          <td>{{ item.montant_restant|intcomma }}</td>
                         </tr>
                     {% endfor %}
                 </tbody>
                 <tfoot>
-
+                    <tr>
+                      <td colspan="2">TOTAL</td>
+                      <td><strong>{{ total_montant_total|intcomma }}</strong></td>
+                      <td><strong>{{ total_montant_encaisse|intcomma }}</strong></td>
+                      <td><strong>{{ total_montant_restant|intcomma }}</strong></td>
+                    </tr>
                 </tfoot>
             </table>
+            <br>
              {% else %}
                     <p>Aucun enregistrement disponible :-)</p>
             {% endif %}
