@@ -52,8 +52,8 @@ class ProduitForm(forms.ModelForm):
     producteur = forms.ModelChoiceField(queryset=Producteur.objects.filter(active=True).order_by('-id'),
                                        required=True,
                                        widget=forms.Select(attrs={'class': 'form-control'}))
-    pv = forms.IntegerField(required=True, widget=forms.TextInput(attrs={'class': 'form-control'}))
-    seuil = forms.FloatField(required=True, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    pv = forms.IntegerField(required=True, widget=forms.NumberInput(attrs={'class': 'form-control'}))
+    seuil = forms.FloatField(required=True, widget=forms.NumberInput(attrs={'class': 'form-control'}))
 
     class Meta:
         model = Produit
@@ -75,7 +75,7 @@ class ClientForm(forms.ModelForm):
 class EntreeForm(forms.ModelForm):
     produit = forms.ModelChoiceField(queryset=Produit.objects.filter(active=True).order_by('-id'),
                                     required=True, widget=forms.Select(attrs={'class': 'form-control'}))
-    qte = forms.FloatField(required=True, widget=forms.TextInput(attrs={'class': 'form-control', 'autocomplete': 'off'}))
+    qte = forms.FloatField(required=True, widget=forms.NumberInput(attrs={'class': 'form-control', 'autocomplete': 'off'}))
 
     class Meta:
         model = Mouvement
@@ -97,8 +97,8 @@ class FactureForm(forms.ModelForm):
     date_facture = forms.DateField(widget=forms.DateInput(attrs={'class': 'form-control', 'readonly': 'true'}))
     client = forms.ModelChoiceField(queryset=Client.objects.filter(active=True).order_by('-id'),
                                     required=False, widget=forms.Select(attrs={'class': 'form-control'}))
-    remise = forms.IntegerField(required=True, initial=0, widget=forms.TextInput(attrs={'class': 'form-control'}))
-    tva = forms.IntegerField(required=True, initial=0, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    remise = forms.IntegerField(required=True, initial=0, widget=forms.NumberInput(attrs={'class': 'form-control'}))
+    tva = forms.IntegerField(required=True, initial=0, widget=forms.NumberInput(attrs={'class': 'form-control'}))
 
     class Meta:
         model = Facture
@@ -108,7 +108,7 @@ class FactureForm(forms.ModelForm):
 class SortieForm(forms.ModelForm):
     produit = MenuModelChoiceField(queryset=Produit.objects.filter(active=True).order_by('-id'),
                                     required=False, widget=forms.Select(attrs={'class': 'form-control', 'id': 'pdtAdder', 'name': 'pdtAdder'}))
-    qte = forms.FloatField(required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'autocomplete': 'off', 'id': 'qteAdder', 'name': 'qte'}))
+    qte = forms.FloatField(required=False, widget=forms.NumberInput(attrs={'class': 'form-control', 'autocomplete': 'off', 'id': 'qteAdder', 'name': 'qte'}))
     facture = forms.ModelChoiceField(queryset=Facture.objects.filter(active=True).order_by('-id'),
                                     required=False, widget=forms.Select(attrs={'class': 'form-control'}))
 
@@ -120,7 +120,7 @@ class SortieForm(forms.ModelForm):
 class SortieOneForm(forms.ModelForm):
     produit = MenuModelChoiceField(queryset=Produit.objects.filter(active=True).order_by('-id'),
                                     required=True, widget=forms.Select(attrs={'class': 'form-control', 'id': 'pdtAdder', 'name': 'pdtAdder', 'autofocus': 'true'}))
-    qte = forms.FloatField(required=True, widget=forms.TextInput(attrs={'class': 'form-control', 'autocomplete': 'off', 'id': 'qteAdder', 'name': 'qte'}))
+    qte = forms.FloatField(required=True, widget=forms.NumberInput(attrs={'class': 'form-control', 'autocomplete': 'off', 'id': 'qteAdder', 'name': 'qte'}))
 
     class Meta:
         model = Mouvement
@@ -142,8 +142,8 @@ class PayementForm(forms.ModelForm):
     date_payement = forms.DateField(initial=datetime.date.today().strftime("%Y-%m-%d"), widget=forms.DateInput(attrs={'class': 'form-control', 'readonly': 'true'}))
     moder = forms.ModelChoiceField(queryset=ModeR.objects.filter(active=True).order_by('-id'),
                                      required=True, widget=forms.Select(attrs={'class': 'form-control'}))
-    mt_encaisse = forms.IntegerField(required=True, initial=0, widget=forms.TextInput(attrs={'class': 'form-control', 'autocomplete': 'off'}))
-    mt_recu = forms.IntegerField(required=True, initial=0, widget=forms.TextInput(attrs={'class': 'form-control', 'autocomplete': 'off'}))
+    mt_encaisse = forms.IntegerField(required=True, initial=0, widget=forms.NumberInput(attrs={'class': 'form-control', 'autocomplete': 'off'}))
+    mt_recu = forms.IntegerField(required=True, initial=0, widget=forms.NumberInput(attrs={'class': 'form-control', 'autocomplete': 'off'}))
 
     class Meta:
         model = Payement

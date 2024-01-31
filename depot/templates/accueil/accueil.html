@@ -16,11 +16,11 @@
           </div>
           <div class="col-md-2 col-sm-4  tile_stats_count">
             <span class="count_top"><i class="fa fa-cubes"></i> Total Produits Inférieur au Stock</span>
-            <div class="count green">{{nombre_total_produits_en_seuil|intcomma}}</div>
+            <div class="count green">{{nombre_total_produits_en_seuil|floatformat:1|intcomma}}</div>
           </div>
           <div class="col-md-2 col-sm-4  tile_stats_count">
             <span class="count_top"><i class="fa fa-arrow-circle-right"></i> Sortie Stock</span>
-            <div class="count">{{total_quantite_sortie_aujourd_hui|intcomma}}</div>
+            <div class="count">{{total_quantite_sortie_aujourd_hui|floatformat:1|intcomma}}</div>
           </div>
           <div class="col-md-2 col-sm-4  tile_stats_count">
             <span class="count_top"><i class="fa fa-file"></i> Facture</span>
@@ -79,14 +79,14 @@
                           <td>{{ resultat.produit.code }}</td>
                           <td>{{ resultat.produit.libelle }}</td>
                           <td>{{ resultat.produit.modelb.libelle }}</td>
-                          <td>{{ resultat.somme_quantite_entree|intcomma }}</td>
-                          <td>{{ resultat.somme_quantite_sortie|intcomma }}</td>
+                          <td>{{ resultat.somme_quantite_entree|floatformat:1|intcomma }}</td>
+                          <td>{{ resultat.somme_quantite_sortie|floatformat:1|intcomma }}</td>
                           {% if resultat.produit.seuil >= resultat.reste %}
-                          <td style="background-color: #ef9b9b">{{ resultat.reste|intcomma }}</td>
+                          <td style="background-color: #ef9b9b">{{ resultat.reste|floatformat:1|intcomma }}</td>
                           {% else %}
-                          <td>{{ resultat.reste|intcomma }}</td>
+                          <td>{{ resultat.reste|floatformat:1|intcomma }}</td>
                           {% endif %}
-                          <td>{{ resultat.produit.seuil|intcomma }}</td>
+                          <td>{{ resultat.produit.seuil|floatformat:1|intcomma }}</td>
                         </tr>
                       {% endfor %}
                       </tbody>
