@@ -1120,7 +1120,7 @@ def create_payement(request):
 
             payement.mt_restant = montant_facture_restant - payement.mt_encaisse
 
-            if montant_facture_restant > 0:
+            if montant_facture_restant > 0 and payement.mt_encaisse <= montant_facture_restant and payement.mt_encaisse <= payement.mt_recu:
                 Historique.objects.create(auteur=request.user, action="Enregistrement",
                                           table="Gestion des Payements",
                                           contenu=payement)
@@ -1128,7 +1128,7 @@ def create_payement(request):
                 messages.success(request, "Enregistrement effectué", extra_tags='custom-success')
                 return redirect("/create-payement")
             else:
-                messages.warning(request, "Facture Déja Reglée", extra_tags='custom-warning')
+                messages.warning(request, "Facture Déja Reglée ou Erreur de montant saisie", extra_tags='custom-warning')
                 return redirect("/create-payement")
 
         else:
@@ -1527,7 +1527,8 @@ class statistique_facture_reste_avec_penalite(View):
             if montant_restant == 0:
                 continue
             jours_diff = (date.today() - facture.date_facture).days
-            penalite = 0.002  # 0.2%
+            nb_jours_impaye = jours_diff - 7
+            penalite = 0.002 * nb_jours_impaye  # 0.2%
             montant_penalite = math.ceil(round(montant_restant * penalite, 4)) if jours_diff > 7 else 0
             montant_a_payer = math.ceil(montant_restant + montant_penalite)
             montant_encaisse = sum(paiement.mt_encaisse for paiement in facture.payement_set.filter(active=True))
@@ -1605,7 +1606,8 @@ class liste_produits(View):
 class liste_archivage_facture(View):
     def get(self, request, *args, **kwargs):
 
-        factures = Facture.objects.filter(payement__mt_encaisse__gt=0).distinct()
+        # factures = Facture.objects.filter(payement__mt_encaisse__gt=0).distinct()
+        factures = Facture.objects.all()
         print('facture', factures)
         data = {
             'today': datetime.date.today().strftime("%d-%m-%Y"),

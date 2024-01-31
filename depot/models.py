@@ -181,7 +181,8 @@ class Facture(models.Model):
         jours_diff = (date.today() - self.date_facture).days
         if jours_diff > 7:
             # Applique une pénalité de 0.2% au montant restant
-            penalite = 0.002  # 0.2%
+            nb_jours_impaye = jours_diff - 7
+            penalite = 0.002 * nb_jours_impaye  # 0.2%
             montant_restant += montant_restant * penalite
 
         self.montant_restant = montant_restant
