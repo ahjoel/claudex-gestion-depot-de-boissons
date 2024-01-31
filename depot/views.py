@@ -44,6 +44,8 @@ def custom_login(request):
                     return redirect("/")
                 else:
                     message = "Nom d'utilisateur ou mot de passe incorrectes"
+            else:
+                message = "Tous les champs ne sont pas correctement renseignés."
 
     context = {
         'form': form, 'message': message
@@ -54,7 +56,9 @@ def custom_login(request):
 # Page d'accueil apres authentification
 @login_required(login_url="/connexion")
 def home(request):
+    # Compte les clients au total
     total_clt_count = Client.objects.filter(active=True).count()
+    # Compte les produits au total
     total_pdt_count = Produit.objects.filter(active=True).count()
 
     aujourd_hui = datetime.date.today()
@@ -65,13 +69,13 @@ def home(request):
         type_op="OUT"
     ).aggregate(total_quantite_sortie=models.Sum('qte'))['total_quantite_sortie']
 
-    # Si le total est None (pas de mouvements de type "OUT" aujourd'hui), initialisez-le à 0
+    # Si le total est None (pas de mouvements de type "OUT" aujourd'hui), alors on l'initialise à 0
     total_quantite_sortie_aujourd_hui = total_quantite_sortie_aujourd_hui or 0
 
     ## Listing Stock Général et Vente
     produits = Produit.objects.all()
 
-    # Liste pour stocker les résultats finaux
+    ## Liste pour stocker les résultats finaux
     resultats_produits = []
 
     for produit in produits:
@@ -131,6 +135,9 @@ def home(request):
 
 
 # Gestion des Models
+# Accès à certains types d'utilisateurs selon le role
+
+# Affichage des models
 @login_required(login_url="/connexion")
 @allowed_users(allowed_roles=['GERANT', 'ADMINISTRATEUR', 'CAISSIER', 'FACTURATION'])
 def gmodels(request):
@@ -141,6 +148,7 @@ def gmodels(request):
     return render(request, 'model/model.html', context)
 
 
+# Création des models
 @login_required(login_url="/connexion")
 @allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR'])
 def create_gmodels(request):
@@ -176,6 +184,7 @@ def create_gmodels(request):
     return render(request, template_name,  context)
 
 
+# Modification des models
 @login_required(login_url="/connexion")
 @allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR'])
 def update_gmodels(request, id):
@@ -193,6 +202,7 @@ def update_gmodels(request, id):
     return render(request, 'model/form.html', {'form': form, "titre": titre})
 
 
+# Suppression des models
 @login_required(login_url="/connexion")
 def delete_gmodels(request, id):
     modelb = get_object_or_404(ModelB, id=id)
@@ -207,8 +217,11 @@ def delete_gmodels(request, id):
         messages.error(request, "Une erreur est survenue lors de l'opération.", extra_tags='custom-warning')
 
     return redirect('/model')
+# Gestion des Models - Fin
 
 
+# Gestion des Producteurs
+# Affichage des producteurs
 @login_required(login_url="/connexion")
 @allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR','CAISSIER', 'FACTURATION'])
 def producteurs(request):
@@ -219,6 +232,7 @@ def producteurs(request):
     return render(request, 'producteur/producteur.html', context)
 
 
+# Création des producteurs
 @login_required(login_url="/connexion")
 @allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR'])
 def create_producteur(request):
@@ -256,6 +270,7 @@ def create_producteur(request):
     return render(request, template_name,  context)
 
 
+# Modification des producteurs
 @login_required(login_url="/connexion")
 @allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR'])
 def update_producteur(request, id):
@@ -273,6 +288,7 @@ def update_producteur(request, id):
     return render(request, 'producteur/form.html', {'form': form, "titre": titre})
 
 
+# Suppression des producteurs
 @login_required(login_url="/connexion")
 @allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR'])
 def delete_producteur(request, id):
@@ -289,8 +305,11 @@ def delete_producteur(request, id):
                        extra_tags='custom-warning')
 
     return redirect('/producteur')
+# Gestion des producteurs - Fin
 
 
+# Gestion des produits
+# Affichage des produits
 @login_required(login_url="/connexion")
 @allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR','CAISSIER', 'FACTURATION'])
 def produits(request):
@@ -301,6 +320,7 @@ def produits(request):
     return render(request, 'produit/produit.html', context)
 
 
+# Création des produits
 @login_required(login_url="/connexion")
 @allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR'])
 def create_produit(request):
@@ -337,6 +357,7 @@ def create_produit(request):
     return render(request, template_name,  context)
 
 
+# Modification des produits
 @login_required(login_url="/connexion")
 @allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR'])
 def update_produit(request, id):
@@ -354,6 +375,7 @@ def update_produit(request, id):
     return render(request, 'produit/form.html', {'form': form, "titre": titre})
 
 
+# Suppression des produits
 @login_required(login_url="/connexion")
 @allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR'])
 def delete_produit(request, id):
@@ -369,8 +391,11 @@ def delete_produit(request, id):
         messages.success(request, "Une erreur est survenue lors de l'opération.", extra_tags='custom-warning')
 
     return render(request, 'produit/form.html', {'produit': produit})
+# Gestion des produits - Fin
 
 
+# Gestion des clients
+# Affichage des clients
 @login_required(login_url="/connexion")
 @allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR','CAISSIER', 'FACTURATION'])
 def clients(request):
@@ -381,6 +406,7 @@ def clients(request):
     return render(request, 'client/client.html', context)
 
 
+# Création des clients
 @login_required(login_url="/connexion")
 @allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR'])
 def create_client(request):
@@ -388,10 +414,10 @@ def create_client(request):
     titre = "Enregistrement"
     if request.method == 'POST':
         form = ClientForm(request.POST)
-        code = request.POST.get('code')
+        rs = request.POST.get('rs')
 
-        if Client.objects.filter(code=code, active=True).exists():
-            messages.error(request, "Il existe déja ce code dans la base", extra_tags='custom-warning')
+        if Client.objects.filter(rs=rs, active=True).exists():
+            messages.error(request, "Il existe déja ce client dans la base", extra_tags='custom-warning')
             return redirect("/create-client")
 
         valid = form.is_valid()
@@ -417,6 +443,7 @@ def create_client(request):
     return render(request, template_name,  context)
 
 
+# Modification des clients
 @login_required(login_url="/connexion")
 @allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR'])
 def update_client(request, id):
@@ -434,6 +461,7 @@ def update_client(request, id):
     return render(request, 'client/form.html', {'form': form, "titre": titre})
 
 
+# Suppression des clients
 @login_required(login_url="/connexion")
 @allowed_users(allowed_roles=['GERANT', 'ADMINISTRATEUR'])
 def delete_client(request, id):
@@ -449,8 +477,11 @@ def delete_client(request, id):
         messages.success(request, "Une erreur est survenue lors de l'opération.", extra_tags='custom-warning')
 
     return redirect('/producteur')
+# Gestion des clients - Fin
 
 
+# Gestion des modes de reglements
+# Affichage des modes de reglements
 @login_required(login_url="/connexion")
 @allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR','CAISSIER', 'FACTURATION'])
 def moders(request):
@@ -461,6 +492,7 @@ def moders(request):
     return render(request, 'moder/moder.html', context)
 
 
+# Création des modes de reglements
 @login_required(login_url="/connexion")
 @allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR'])
 def create_moder(request):
@@ -497,6 +529,7 @@ def create_moder(request):
     return render(request, template_name,  context)
 
 
+# Modification des modes de reglements
 @login_required(login_url="/connexion")
 @allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR'])
 def update_moder(request, id):
@@ -514,6 +547,7 @@ def update_moder(request, id):
     return render(request, 'moder/form.html', {'form': form, "titre": titre})
 
 
+# Suppression des modes de reglements
 @login_required(login_url="/connexion")
 @allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR'])
 def delete_moder(request, id):
@@ -529,8 +563,11 @@ def delete_moder(request, id):
         messages.success(request, "Une erreur est survenue lors de l'opération.", extra_tags='custom-warning')
 
     return redirect('/moder')
+# Gestion des modes de reglements - Fin
 
 
+# Gestion des entrees
+# Affichage des entrees
 @login_required(login_url="/connexion")
 @allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR','CAISSIER', 'FACTURATION'])
 def entrees(request):
@@ -541,6 +578,7 @@ def entrees(request):
     return render(request, 'entree/entree.html', context)
 
 
+# Création des entrees
 @login_required(login_url="/connexion")
 @allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR'])
 def create_entree(request):
@@ -574,6 +612,7 @@ def create_entree(request):
     return render(request, template_name,  context)
 
 
+# Modification des entrees
 @login_required(login_url="/connexion")
 @allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR'])
 def update_entree(request, id):
@@ -592,6 +631,7 @@ def update_entree(request, id):
     return render(request, 'entree/form.html', {'form': form, "titre": titre})
 
 
+# Suppression des entrees
 @login_required(login_url="/connexion")
 @allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR'])
 def delete_entree(request, id):
@@ -608,8 +648,11 @@ def delete_entree(request, id):
         messages.success(request, "Une erreur est survenue lors de l'opération.", extra_tags='custom-warning')
 
     return redirect('/entree')
+# Gestion des entrees - Fin
 
 
+# Gestion des sorties - Facture
+# Affichage des sorties
 @login_required(login_url="/connexion")
 @allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR','CAISSIER', 'FACTURATION'])
 def sorties(request):
@@ -622,17 +665,16 @@ def sorties(request):
     return render(request, 'sortie/sortie.html', context)
 
 
+# Création des sorties
+# Enregistrement de produits multiple sur facture
 @login_required(login_url="/connexion")
 @allowed_users(allowed_roles=['GERANT','ADMINISTRATEUR', 'FACTURATION'])
 def create_sortie(request):
     template_name = 'sortie/form.html'
-    titre = "Enregistrement"
-    # d = datetime.date.today().strftime("%d%m%Y")
     date_facture_form = datetime.date.today().strftime("%Y-%m-%d")
-    id_max = Facture.objects.filter(code_facture__isnull=False, active=True).count()
+    id_max = Facture.objects.aggregate(max_id=Max('id'))['max_id'] or 0
+    #id_max = Facture.objects.filter(code_facture__isnull=False, active=True).count()
     today = datetime.date.today()
-    # todayy = datetime.strftime(todayy, '%d %B %Y').date()
-    # print(today)
     annee = today.year
     mois = today.month
     if (id_max == 0):
@@ -640,14 +682,18 @@ def create_sortie(request):
     else:
         id_max = id_max + 1
     code_facture = f"CLAUDEX-{annee}-{mois}/{id_max}"
+
     form = SortieForm(request.POST or None)
     form1 = FactureForm(request.POST or None)
+
     if request.method == 'POST':
         date_facture = request.POST['date_facture']
         code_facture = request.POST['code_facture']
         client = request.POST['client']
+        # Cas de nouveau client
         nouveau_client = request.POST['nouveau_client']
         nouveau_client_code = request.POST['nouveau_client_code']
+        # Cas de nouveau client - Fin
         remise = request.POST['remise']
         tva = request.POST['tva']
         pdt = request.POST.getlist('pdtIds[]')
@@ -656,33 +702,45 @@ def create_sortie(request):
         ttc = mt_ht + tva + remise
 
         if pdt:
-            if nouveau_client:
-                Historique.objects.create(auteur=request.user, action="Enregistrement",
-                                          table="Gestion des Clients",
-                                          contenu=nouveau_client)
-                nouveau_client = Client.objects.create(auteur=request.user, code=nouveau_client_code,
-                                                       rs=nouveau_client, type="DIVERS")
-                nouveau_client_id = nouveau_client.id
-                client_id = get_object_or_404(Client, id=nouveau_client_id)
-                client = nouveau_client_id
-            else:
-                client_id = get_object_or_404(Client, id=client)
+            if qte:
+                if ttc:
+                    # Création et Récuperation de nouveau client au cas contraire Sélection du client existant
+                    if nouveau_client:
+                        Historique.objects.create(auteur=request.user, action="Enregistrement Nouveau Client - Facture",
+                                                  table="Gestion des Clients",
+                                                  contenu=nouveau_client)
+                        nouveau_client = Client.objects.create(auteur=request.user, code=nouveau_client_code,
+                                                               rs=nouveau_client, type="DIVERS")
+                        nouveau_client_id = nouveau_client.id
+                        client_id = get_object_or_404(Client, id=nouveau_client_id)
+                        client = nouveau_client_id
+                    else:
+                        client_id = get_object_or_404(Client, id=client)
 
-            code_facture_reel = f"CLAUDEX-{annee}-{mois}/{client_id.code}/{id_max}"
-            fact = Facture.objects.create(code_facture=code_facture_reel, date_facture=date_facture, client=Client.objects.get(pk=client), tva=tva, remise=remise, mt_ttc=ttc, auteur=request.user)
-            fact_id = fact.id
-            for i in range(len(pdt)):
-                Mouvement.objects.create(auteur=request.user, facture=Facture.objects.get(pk=fact_id),
-                                        produit=Produit.objects.get(pk=pdt[i]),
-                                        qte=qte[i],
-                                        type_op="OUT")
-                Historique.objects.create(auteur=request.user, action="Enregistrement",
-                                          table="Gestion du Stock Sortie",
-                                          contenu=f"{Facture.objects.get(pk=fact_id)}-{Produit.objects.get(pk=pdt[i])}")
-            messages.success(request, "Enregistrement(s) effectué(s)")
-            return redirect('sortie')
+                    code_facture_reel = f"CLAUDEX-{annee}-{mois}/{client_id.code}/{id_max}"
+                    fact = Facture.objects.create(code_facture=code_facture_reel, date_facture=date_facture, client=Client.objects.get(pk=client), tva=tva, remise=remise, mt_ttc=ttc, auteur=request.user)
+                    fact_id = fact.id
+                    for i in range(len(pdt)):
+                        Mouvement.objects.create(auteur=request.user, facture=Facture.objects.get(pk=fact_id),
+                                                produit=Produit.objects.get(pk=pdt[i]),
+                                                qte=qte[i],
+                                                type_op="OUT")
+                        Historique.objects.create(auteur=request.user, action="Enregistrement",
+                                                  table="Gestion du Stock Sortie - Facture",
+                                                  contenu=f"{Facture.objects.get(pk=fact_id)}-{Produit.objects.get(pk=pdt[i])}")
+                    messages.success(request, "Enregistrement(s) effectué(s)")
+                    return redirect('sortie')
+                else:
+                    messages.warning(request, "Erreur, montant ht, la taxe ou la remise ne sont pas correctes. Réessayez", extra_tags='custom-warning')
+                    return render(request, 'sortie/form.html',
+                                  {'form1': form1, 'form': form, 'code_facture': code_facture})
+            else:
+                messages.warning(request, "Erreur, La quantité n'est pas dans un bon format. Réessayez", extra_tags='custom-warning')
+                return render(request, 'sortie/form.html',
+                              {'form1': form1, 'form': form, 'code_facture': code_facture})
         else:
-            messages.warning(request, "Svp, Veuillez ajouter au moins un produit sur la facture.", extra_tags='custom-warning')
+            messages.warning(request, "Svp, Veuillez ajouter au moins un produit sur la facture.",
+                             extra_tags='custom-warning')
             return render(request, 'sortie/form.html',
                           {'form1': form1, 'form': form, 'code_facture': code_facture})
 
@@ -696,6 +754,7 @@ def create_sortie(request):
     return render(request, template_name,  context)
 
 
+# Requete AJAX pour le chargement de la quantité du produit disponible et du prix de vente du produit - partie Facture
 def load_qte_dispo(request):
     pdt_id = request.GET.get('pdt_id')
 
@@ -706,7 +765,8 @@ def load_qte_dispo(request):
         qte_out = \
         list(Mouvement.objects.filter(produit_id=pdt_id, type_op='OUT', active=True).aggregate(Sum('qte')).values())[
             0] or 0
-        qte_dis = qte_in - qte_out
+
+        qte_dis = round(qte_in - qte_out, 1)
         pv_pdt = Produit.objects.filter(active=True, id=pdt_id).values_list('pv', flat=True).first()
         pv_pdt = int(pv_pdt)
         return JsonResponse([qte_dis, pv_pdt], safe=False)
@@ -714,6 +774,7 @@ def load_qte_dispo(request):
         return JsonResponse([0, 0], safe=False)
 
 
+# Ajout d'un produit unique sur une facture donnée à partir de la page détails facture
 @login_required(login_url="/connexion")
 @allowed_users(allowed_roles=['GERANT', 'ADMINISTRATEUR', 'FACTURATION'])
 def create_one_sortie(request, id):
@@ -733,13 +794,17 @@ def create_one_sortie(request, id):
                                          qte=qte,
                                          type_op="OUT")
                 Historique.objects.create(auteur=request.user, action="Enregistrement",
-                                          table="Gestion du Stock Sortie",
+                                          table="Gestion du Stock Sortie - Facture",
                                           contenu=f"{Facture.objects.get(id=id)}-{Produit.objects.get(id=pdt.id)}")
                 messages.success(request, "Enregistrement effectué", extra_tags='custom-success')
                 return redirect(f"/detail-facture/{facture_id.id}")
             else:
                 messages.error(request, "Une erreur est survenue lors de l'opération, choisissez correctement la quantité.", extra_tags='custom-warning')
                 return redirect(f"/create-one-sortie/{facture_id.id}")
+        else:
+            messages.error(request, "Tous les champs ne sont pas correctement renseignés.",
+                           extra_tags='custom-warning')
+            return redirect(f"/create-one-sortie/{facture_id.id}")
     else:
         form = SortieOneForm()
 
@@ -753,6 +818,8 @@ def create_one_sortie(request, id):
     return render(request, template_name, context)
 
 
+# Modification de facture selon la condition : si elle est en cours de reglement, ou déja réglé l'opération de
+# modification de la facture est impossible
 @login_required(login_url="/connexion")
 @allowed_users(allowed_roles=['GERANT', 'ADMINISTRATEUR', 'FACTURATION'])
 def update_sortie(request, id):
@@ -761,12 +828,12 @@ def update_sortie(request, id):
     form = SortieForm(request.POST or None, instance=sortie)
     facture = sortie.facture
     facture_id = sortie.facture.id
-    # print(facture)
+
     if form.is_valid():
         check_facture = Payement.objects.filter(facture_id=facture_id, active=True).exists()
         if check_facture==False:
             Historique.objects.create(auteur=request.user, action="Modification",
-                                      table="Gestion du Stock Sortie",
+                                      table="Gestion du Stock Sortie - Facture",
                                       contenu=sortie)
             form.save()
             messages.success(request, "Modification effectuée", extra_tags='custom-success')
@@ -778,6 +845,8 @@ def update_sortie(request, id):
     return render(request, 'sortie/form_edit.html', {'form': form, "titre": titre, "facture": facture})
 
 
+# Suppression de facture selon la condition : si elle est en cours de reglement, ou déja réglé l'opération de
+# suppression de la facture est impossible
 @login_required(login_url="/connexion")
 @allowed_users(allowed_roles=['GERANT', 'ADMINISTRATEUR'])
 def delete_sortie(request, id):
@@ -788,7 +857,7 @@ def delete_sortie(request, id):
         check_facture = Payement.objects.filter(facture_id=facture, active=True).exists()
         if check_facture == False:
             Historique.objects.create(auteur=request.user, action="Suppression",
-                                      table="Gestion du Stock Sortie",
+                                      table="Gestion du Stock Sortie - Facture",
                                       contenu=sortie)
             sortie.delete()
             messages.success(request, "Suppression effectuée", extra_tags='custom-success')
@@ -800,6 +869,8 @@ def delete_sortie(request, id):
         messages.success(request, "Une erreur est survenue lors de l'opération.", extra_tags='custom-warning')
 
 
+# Modification de ligne produit spécifique sur la facture, selon la condition : si la facture est en cours de reglement, ou déja réglé l'opération de
+# modification de la ligne produit de la facture est impossible
 @login_required(login_url="/connexion")
 @allowed_users(allowed_roles=['GERANT', 'ADMINISTRATEUR', 'FACTURATION'])
 def update_sortie_facture(request, id):
@@ -812,7 +883,7 @@ def update_sortie_facture(request, id):
         check_facture = Payement.objects.filter(facture_id=facture, active=True).exists()
         if check_facture==False:
             Historique.objects.create(auteur=request.user, action="Modification",
-                                      table="Gestion du Stock Sorties",
+                                      table="Gestion du Stock Sorties - Facture",
                                       contenu=sortie)
             form.save()
             messages.success(request, "Modification effectuée", extra_tags='custom-success')
@@ -824,6 +895,8 @@ def update_sortie_facture(request, id):
     return render(request, 'sortie/form_edit.html', {'form': form, "titre": titre, "facture": facture})
 
 
+# Suppression de ligne produit spécifique sur la facture, selon la condition : si la facture est en cours de reglement, ou déja réglé l'opération de
+# suppression de la ligne produit de la facture est impossible
 @login_required(login_url="/connexion")
 @allowed_users(allowed_roles=['GERANT', 'ADMINISTRATEUR'])
 def delete_sortie_facture(request, id):
@@ -834,7 +907,7 @@ def delete_sortie_facture(request, id):
         check_facture = Payement.objects.filter(facture_id=facture, active=True).exists()
         if check_facture == False:
             Historique.objects.create(auteur=request.user, action="Suppression",
-                                      table="Gestion du Stock Sorties",
+                                      table="Gestion du Stock Sorties - Facture",
                                       contenu=sortie)
             sortie.delete()
             messages.success(request, "Suppression effectuée", extra_tags='custom-success')
@@ -847,8 +920,10 @@ def delete_sortie_facture(request, id):
         messages.success(request, "Une erreur est survenue lors de l'opération.", extra_tags='custom-warning')
 
     return redirect(f"/detail-facture/{facture}")
+# Gestion des sorties - Facture - Fin
 
 
+# Gestion des Factures - Simple Affichage
 @login_required(login_url="/connexion")
 @allowed_users(allowed_roles=['GERANT', 'ADMINISTRATEUR', 'FACTURATION', 'CAISSIER'])
 def factures(request):
@@ -859,6 +934,7 @@ def factures(request):
     return render(request, 'facture/facture.html', context)
 
 
+# Gestion des Factures - Détail avec les produits associés - Bouton Impression
 @login_required(login_url="/connexion")
 @allowed_users(allowed_roles=['GERANT', 'ADMINISTRATEUR', 'FACTURATION', 'CAISSIER'])
 def detail_facture(request, id):
@@ -883,10 +959,11 @@ def detail_facture(request, id):
     return render(request, 'facture/detail.html', context)
 
 
+# Gestion des Factures - Détail avec les produits associés - Facture réglée - Bouton Impression
 @login_required(login_url="/connexion")
 @allowed_users(allowed_roles=['GERANT', 'ADMINISTRATEUR', 'CAISSIER', 'FACTURATION'])
 def detail_facture_payee(request, id):
-    # Payement
+    # Infos Payement
     info_payement = get_object_or_404(Payement, id=id)
     total_reglee_for_facture = Payement.objects.filter(facture=info_payement.facture, active=True).aggregate(Sum('mt_encaisse'))['mt_encaisse__sum'] or 0
 
@@ -897,8 +974,9 @@ def detail_facture_payee(request, id):
     mt_tva = tva + remise
     montant_ht = sum(mouvement.produit.pv * mouvement.qte for mouvement in mouvements)
     montant_total = montant_ht - mt_tva
-
     montant_restant = montant_total - total_reglee_for_facture
+
+    # Récap par type produit en fonction de la quantité pour éventuel remise
     recap_types_facture = facture.recap_types_produits()
 
     context = {
@@ -916,6 +994,8 @@ def detail_facture_payee(request, id):
     return render(request, 'payement/detail.html', context)
 
 
+# Modification de facture, selon la condition : si la facture est en cours de reglement, ou déja réglé l'opération de
+# modification de la facture est impossible
 @login_required(login_url="/connexion")
 @allowed_users(allowed_roles=['GERANT', 'ADMINISTRATEUR', 'FACTURATION'])
 def update_facture(request, id):
@@ -940,6 +1020,7 @@ def update_facture(request, id):
     return render(request, 'facture/form_facture.html', {'form': form, "titre": titre})
 
 
+# Facture à remettre au client - generation en PDF
 class generate_facture_a_payer(View):
     def get(self, request, id, *args, **kwargs):
         facture = get_object_or_404(Facture, id=id)
@@ -977,6 +1058,7 @@ class generate_facture_a_payer(View):
         return HttpResponse("Page Not Found")
 
 
+# Facture réglé à remettre au client - generation en PDF
 class generate_facture_payer(View):
     def get(self, request, id, *args, **kwargs):
         # Payement
@@ -1030,6 +1112,137 @@ class generate_facture_payer(View):
         return HttpResponse("Page Not Found")
 
 
+# Gestion des payements
+# Affichage des payements
+@login_required(login_url="/connexion")
+@allowed_users(allowed_roles=['GERANT', 'ADMINISTRATEUR', 'CAISSIER', 'FACTURATION'])
+def payements(request):
+    #payements = Payement.objects.filter(active=True).annotate(nombre_de_payements_facture=Count('facture'))
+    payements = Payement.objects.filter(active=True).order_by('-id')
+    context = {
+        'payements': payements
+    }
+    return render(request, 'payement/payement.html', context)
+
+
+# Création des payements
+@login_required(login_url="/connexion")
+@allowed_users(allowed_roles=['GERANT', 'ADMINISTRATEUR', 'CAISSIER'])
+def create_payement(request):
+    template_name = 'payement/form.html'
+    titre = "Enregistrement"
+    date_paiement_form = datetime.date.today().strftime("%Y-%m-%d")
+    id_max = Payement.objects.aggregate(max_id=Max('id'))['max_id'] or 0
+    # id_max = Payement.objects.filter(active=True).aggregate(max_id=Coalesce(Max('id'), 0))['max_id']
+    today = datetime.date.today()
+    annee = today.year
+    mois = today.month
+    if (id_max == 0):
+        id_max = 1
+    else:
+        id_max = id_max + 1
+    code_payement = f"PAYE-{annee}-{mois}/{id_max}"
+    if request.method == 'POST':
+        form = PayementForm(request.POST)
+
+        valid = form.is_valid()
+        if valid:
+            payement = form.save(commit=False)
+            payement.auteur = request.user
+            payement.code_payement = code_payement
+
+            montant_facture_restant = Facture.objects.get(pk=form.cleaned_data['facture'].id).montant_restant()
+            payement.mt_recu = form.cleaned_data['mt_recu']
+            payement.mt_encaisse = form.cleaned_data['mt_encaisse']
+
+            payement.mt_restant = montant_facture_restant - payement.mt_encaisse
+
+            if montant_facture_restant > 0 and payement.mt_encaisse <= montant_facture_restant and payement.mt_encaisse <= payement.mt_recu:
+                Historique.objects.create(auteur=request.user, action="Enregistrement",
+                                          table="Gestion des Payements",
+                                          contenu=payement)
+                payement.save()
+                messages.success(request, "Enregistrement effectué", extra_tags='custom-success')
+                return redirect("/create-payement")
+            else:
+                messages.warning(request, "Facture Déja Reglée ou Erreur de montant saisie",
+                                 extra_tags='custom-warning')
+                return redirect("/create-payement")
+
+        else:
+            messages.error(request, "Une erreur est survenue lors de l'opération.", extra_tags='custom-warning')
+            return redirect("/create-payement")
+    else:
+        form = PayementForm()
+
+    context = {
+        'titre': titre,
+        'date_paiement_form': date_paiement_form,
+        'code_payement': code_payement,
+        'form': form
+    }
+
+    return render(request, template_name,  context)
+
+# Requete AJAX pour le chargement du montant restant de la facture et montant intial de la facture
+def load_mt_facture(request):
+    factId = request.GET.get('fact_id')
+
+    if factId:
+        facture_instance = Facture.objects.get(id=factId, active=True)
+        total_amount = facture_instance.calcul_montant_total()
+        total_restant = facture_instance.montant_restant()
+        mt_fact = total_amount or 0
+        mt_fact_rest = total_restant or 0
+        return JsonResponse([mt_fact, mt_fact_rest], safe=False)
+    else:
+        return JsonResponse([0, 0], safe=False)
+
+
+# Détail de payement - Bouton impression
+@login_required(login_url="/connexion")
+@allowed_users(allowed_roles=['GERANT', 'ADMINISTRATEUR', 'CAISSIER', 'FACTURATION'])
+def detail_payement(request, id):
+    facture = get_object_or_404(Payement, facture_id=id)
+    mouvements = Mouvement.objects.filter(facture=facture, active=True).order_by('id')
+    tva = facture.tva
+    remise = facture.remise
+    mt_tva = tva + remise
+    montant_ht = sum(mouvement.produit.pv * mouvement.qte for mouvement in mouvements)
+    montant_total = montant_ht - mt_tva
+
+    context = {
+        'facture': facture,
+        'mouvements': mouvements,
+        'montant_ht': montant_ht,
+        'montant_total': montant_total,
+        'remise': remise,
+        'tva': tva,
+    }
+    return render(request, 'facture/detail.html', context)
+
+
+# Suppression de payement
+@login_required(login_url="/connexion")
+@allowed_users(allowed_roles=['GERANT', 'ADMINISTRATEUR'])
+def delete_payement(request, id):
+    payement = get_object_or_404(Payement, id=id)
+
+    if payement:
+        Historique.objects.create(auteur=request.user, action="Suppression",
+                                  table="Gestion des Payements",
+                                  contenu=payement)
+        payement.delete()
+        messages.success(request, "Suppression effectuée", extra_tags='custom-success')
+        return redirect('/payement')
+    else:
+        messages.success(request, "Une erreur est survenue lors de l'opération.", extra_tags='custom-warning')
+
+    return redirect('/payement')
+
+
+# Listing - Etat - generation en PDF
+
 class generate_stock_general_vente(View):
     def get(self, request, *args, **kwargs):
         produits = Produit.objects.all()
@@ -1078,130 +1291,6 @@ class generate_stock_general_vente(View):
             return response
         return HttpResponse("Page Not Found")
 
-
-@login_required(login_url="/connexion")
-@allowed_users(allowed_roles=['GERANT', 'ADMINISTRATEUR', 'CAISSIER', 'FACTURATION'])
-def payements(request):
-    #payements = Payement.objects.filter(active=True).annotate(nombre_de_payements_facture=Count('facture'))
-    payements = Payement.objects.filter(active=True).order_by('-id')
-    context = {
-        'payements': payements
-    }
-    return render(request, 'payement/payement.html', context)
-
-
-@login_required(login_url="/connexion")
-@allowed_users(allowed_roles=['GERANT', 'ADMINISTRATEUR', 'CAISSIER'])
-def create_payement(request):
-    template_name = 'payement/form.html'
-    titre = "Enregistrement"
-    date_paiement_form = datetime.date.today().strftime("%Y-%m-%d")
-    id_max = Payement.objects.filter(active=True).aggregate(max_id=Coalesce(Max('id'), 0))['max_id']
-    today = datetime.date.today()
-    annee = today.year
-    mois = today.month
-    if (id_max == 0):
-        id_max = 1
-    else:
-        id_max = id_max + 1
-    code_payement = f"PAYE-{annee}-{mois}/{id_max}"
-    if request.method == 'POST':
-        form = PayementForm(request.POST)
-
-        valid = form.is_valid()
-        if valid:
-            payement = form.save(commit=False)
-            payement.auteur = request.user
-            payement.code_payement = code_payement
-
-            montant_facture_restant = Facture.objects.get(pk=form.cleaned_data['facture'].id).montant_restant()
-            payement.mt_recu = form.cleaned_data['mt_recu']
-            payement.mt_encaisse = form.cleaned_data['mt_encaisse']
-
-            payement.mt_restant = montant_facture_restant - payement.mt_encaisse
-
-            if montant_facture_restant > 0:
-                Historique.objects.create(auteur=request.user, action="Enregistrement",
-                                          table="Gestion des Payements",
-                                          contenu=payement)
-                payement.save()
-                messages.success(request, "Enregistrement effectué", extra_tags='custom-success')
-                return redirect("/create-payement")
-            else:
-                messages.warning(request, "Facture Déja Reglée", extra_tags='custom-warning')
-                return redirect("/create-payement")
-
-        else:
-            messages.error(request, "Une erreur est survenue lors de l'opération.", extra_tags='custom-warning')
-            return redirect("/create-payement")
-    else:
-        form = PayementForm()
-
-    context = {
-        'titre': titre,
-        'date_paiement_form': date_paiement_form,
-        'code_payement': code_payement,
-        'form': form
-    }
-
-    return render(request, template_name,  context)
-
-
-def load_mt_facture(request):
-    factId = request.GET.get('fact_id')
-
-    if factId:
-        facture_instance = Facture.objects.get(id=factId, active=True)
-        total_amount = facture_instance.calcul_montant_total()
-        total_restant = facture_instance.montant_restant()
-        mt_fact = total_amount or 0
-        mt_fact_rest = total_restant or 0
-        return JsonResponse([mt_fact, mt_fact_rest], safe=False)
-    else:
-        return JsonResponse([0, 0], safe=False)
-
-
-@login_required(login_url="/connexion")
-@allowed_users(allowed_roles=['GERANT', 'ADMINISTRATEUR'])
-def delete_payement(request, id):
-    payement = get_object_or_404(Payement, id=id)
-
-    if payement:
-        Historique.objects.create(auteur=request.user, action="Suppression",
-                                  table="Gestion des Payements",
-                                  contenu=payement)
-        payement.delete()
-        messages.success(request, "Suppression effectuée", extra_tags='custom-success')
-        return redirect('/payement')
-    else:
-        messages.success(request, "Une erreur est survenue lors de l'opération.", extra_tags='custom-warning')
-
-    return redirect('/payement')
-
-
-@login_required(login_url="/connexion")
-@allowed_users(allowed_roles=['GERANT', 'ADMINISTRATEUR', 'CAISSIER', 'FACTURATION'])
-def detail_payement(request, id):
-    facture = get_object_or_404(Payement, facture_id=id)
-    mouvements = Mouvement.objects.filter(facture=facture, active=True).order_by('id')
-    tva = facture.tva
-    remise = facture.remise
-    mt_tva = tva + remise
-    montant_ht = sum(mouvement.produit.pv * mouvement.qte for mouvement in mouvements)
-    montant_total = montant_ht - mt_tva
-
-    context = {
-        'facture': facture,
-        'mouvements': mouvements,
-        'montant_ht': montant_ht,
-        'montant_total': montant_total,
-        'remise': remise,
-        'tva': tva,
-    }
-    return render(request, 'facture/detail.html', context)
-
-
-# Listing
 
 # Caisse
 def statistique_caisses(request):
@@ -1309,7 +1398,7 @@ class statistique_caisse_periode(View):
 
 class statistique_caisse_periode_mensuelle(View):
     def get(self, request, *args, **kwargs):
-        start_date = "2023-12-01"
+        start_date = "2024-02-01"
         end_date = datetime.date.today().strftime("%Y-%m-%d")
 
         # Test - Statistique Mensuelle
@@ -1465,7 +1554,7 @@ class statistique_vente_periode(View):
 
 class statistique_caisse_periode_mensuelle(View):
     def get(self, request, *args, **kwargs):
-        start_date = "2023-12-01"
+        start_date = "2024-02-01"
         end_date = datetime.date.today().strftime("%Y-%m-%d")
 
         # Test - Statistique Mensuelle
@@ -1527,7 +1616,8 @@ class statistique_facture_reste_avec_penalite(View):
             if montant_restant == 0:
                 continue
             jours_diff = (date.today() - facture.date_facture).days
-            penalite = 0.002  # 0.2%
+            nb_jours_impaye = jours_diff - 7
+            penalite = 0.002 * nb_jours_impaye  # 0.2%
             montant_penalite = math.ceil(round(montant_restant * penalite, 4)) if jours_diff > 7 else 0
             montant_a_payer = math.ceil(montant_restant + montant_penalite)
             montant_encaisse = sum(paiement.mt_encaisse for paiement in facture.payement_set.filter(active=True))
@@ -1605,7 +1695,8 @@ class liste_produits(View):
 class liste_archivage_facture(View):
     def get(self, request, *args, **kwargs):
 
-        factures = Facture.objects.filter(payement__mt_encaisse__gt=0).distinct()
+        # factures = Facture.objects.filter(payement__mt_encaisse__gt=0).distinct()
+        factures = Facture.objects.all()
         print('facture', factures)
         data = {
             'today': datetime.date.today().strftime("%d-%m-%Y"),
@@ -1622,6 +1713,8 @@ class liste_archivage_facture(View):
             return response
         return HttpResponse("Page Not Found")
 
+
+# Gestion des erreurs et Autorisation
 def custom_404(request, exception):
     return render(request, 'accueil/404.html', status=404)
 

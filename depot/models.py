@@ -3,11 +3,11 @@ from datetime import datetime, date
 
 from django.contrib.auth.models import User
 from django.db import models
-from django.db.models import Sum, DecimalField, Func
+from django.db.models import Sum
 from django.utils import timezone
 
 
-# Create your models here.
+# Table Model
 class ModelB(models.Model):
     auteur = models.ForeignKey(User, on_delete=models.PROTECT)
     code = models.CharField(max_length=10, blank=False, null=False, unique=True)
@@ -24,6 +24,7 @@ class ModelB(models.Model):
         verbose_name_plural = "GESTION DES MODELS"
 
 
+# Table Mode de Reglement
 class ModeR(models.Model):
     auteur = models.ForeignKey(User, on_delete=models.PROTECT)
     code = models.CharField(max_length=10, blank=False, null=False, unique=True)
@@ -40,6 +41,7 @@ class ModeR(models.Model):
         verbose_name_plural = "GESTION DES MODES DE REGLEMENT"
 
 
+# Table Producteur
 class Producteur(models.Model):
     auteur = models.ForeignKey(User, on_delete=models.PROTECT)
     code = models.CharField(max_length=10, blank=False, null=False, unique=True)
@@ -56,13 +58,17 @@ class Producteur(models.Model):
         verbose_name_plural = "GESTION DES PRODUCTEURS"
 
 
+# Table Produit
 class Produit(models.Model):
     auteur = models.ForeignKey(User, on_delete=models.PROTECT)
+    # clé etrangere pour model de produit
     modelb = models.ForeignKey(ModelB, on_delete=models.PROTECT)
     producteur = models.ForeignKey(Producteur, on_delete=models.PROTECT)
     code = models.CharField(max_length=40, blank=False, null=False, unique=True)
     libelle = models.CharField(max_length=80, blank=False, null=False)
+    # prix de vente
     pv = models.IntegerField()
+    # seuil pour chaque produit
     seuil = models.FloatField()
 
     active = models.BooleanField(default=True)
@@ -72,6 +78,7 @@ class Produit(models.Model):
     def __str__(self):
         return f"{self.libelle}-{self.modelb}"
 
+    # Fonction utilisée pour le mouvement des produits en fonction de leurs quantités et le reste final
     def somme_quantites(self):
         # Annotation pour la somme des quantités entrantes
         somme_quantite_entree = \
@@ -96,11 +103,13 @@ class Produit(models.Model):
         verbose_name_plural = "GESTION DES PRODUITS"
 
 
+# Table Client
 class Client(models.Model):
     auteur = models.ForeignKey(User, on_delete=models.PROTECT)
     code = models.CharField(max_length=20, blank=False, null=False)
+    # raison sociale client
     rs = models.CharField(max_length=80, blank=False, null=False)
-    type = models.CharField(max_length=30, blank=True, null=True)
+    type = models.CharField(max_length=30, blank=True, null=True, default="DIPI")
     ville = models.CharField(max_length=30, blank=True, null=True)
     tel = models.CharField(max_length=30, blank=True, null=True)
     mail = models.EmailField(max_length=40, blank=True, null=True)
@@ -115,6 +124,7 @@ class Client(models.Model):
     class Meta:
         verbose_name_plural = "GESTION DES CLIENTS"
 
+    # Fonction pour cumuler le montant des factures impayees par client
     def montant_factures_impayees(self):
         # Récupérer toutes les factures associées à ce client
         factures = self.facture_set.filter(active=True)
@@ -129,11 +139,7 @@ class Client(models.Model):
         return montant_impaye_total
 
 
-class MontantRestant(Func):
-    function = 'montant_restant'
-    output_field = DecimalField()
-
-
+# Table Facture
 class Facture(models.Model):
     auteur = models.ForeignKey(User, on_delete=models.PROTECT)
     code_facture = models.CharField(max_length=80, unique=True)
@@ -141,6 +147,7 @@ class Facture(models.Model):
     client = models.ForeignKey(Client, on_delete=models.PROTECT)
     remise = models.IntegerField(default=0)
     tva = models.IntegerField(default=0)
+    # montant total facture - mise a jour dynamiquement selon le crud des produits associés
     mt_ttc = models.IntegerField(default=0)
     situation = models.CharField(max_length=30, default="NON", blank=True, null=True)
 
@@ -154,6 +161,10 @@ class Facture(models.Model):
     class Meta:
         verbose_name_plural = "GESTION DES FACTURES"
 
+    # Fonction pour afficher le montant total de la facture dynamiquement
+    # c'est-a-dire qu'il tient compte des ajouts, modification et suppression de produit
+    # sur une facture specifique
+    # et met à jour dynamiquement le mt_ttc(montant facture lors de la creation)
     def calcul_montant_total(self):
         montant_ht = sum(
             mouvement.sous_total() for mouvement in self.mouvement_set.filter(active=True)
@@ -163,8 +174,8 @@ class Facture(models.Model):
         self.save()
         return montant_ttc or 0
 
+    # Calcule le montant restant en soustrayant le montant encaissé de la somme totale
     def montant_restant_par_rapport_total_facture(self):
-        # Calcule le montant restant en soustrayant le montant encaissé de la somme totale
         montant_encaisse = sum(paiement.mt_encaisse for paiement in self.payement_set.filter(active=True))
         montant_restant = self.calcul_montant_total() - montant_encaisse
 
@@ -172,6 +183,8 @@ class Facture(models.Model):
         self.save()
         return montant_restant
 
+    # Calcule le montant restant en soustrayant le montant encaissé de la somme totale
+    # Et applique la penalité sur le montant restant restant
     def montant_restant(self):
         # Calcule le montant restant en soustrayant le montant encaissé de la somme totale
         montant_encaisse = sum(paiement.mt_encaisse for paiement in self.payement_set.filter(active=True))
@@ -181,22 +194,19 @@ class Facture(models.Model):
         jours_diff = (date.today() - self.date_facture).days
         if jours_diff > 7:
             # Applique une pénalité de 0.2% au montant restant
-            penalite = 0.002  # 0.2%
+            nb_jours_impaye = jours_diff - 7
+            penalite = 0.002 * nb_jours_impaye  # 0.2%
             montant_restant += montant_restant * penalite
 
         self.montant_restant = montant_restant
         self.save()
         return montant_restant
 
+    # Créer un récapitulatif des types de produits avec le producteur associé et leurs quantités
     def recap_types_produits(self):
         # Récupérer tous les mouvements associés à cette facture
         mouvements = self.mouvement_set.filter(active=True)
 
-        # Créer un récapitulatif des types de produits avec le producteur associé
-        # recap_types = Counter(
-        #     (mouvement.produit.producteur.libelle, mouvement.produit.modelb.libelle, mouvement.qte)
-        #     for mouvement in mouvements
-        # )
         recap_types = Counter()
         for mouvement in mouvements:
             type_produit = (
@@ -207,7 +217,7 @@ class Facture(models.Model):
 
         return dict(recap_types)
 
-    # Test - Statisque Mensuelle
+    # Statisque Caisse Mensuelle
     def montant_total_encaisse(self):
         return Payement.objects.filter(facture=self, active=True).aggregate(Sum('mt_encaisse'))['mt_encaisse__sum'] or 0
 
@@ -240,7 +250,7 @@ class Facture(models.Model):
             montant_restant_par_mois.append({'mois': mois, 'montant_restant': montant_restant})
 
         return montant_restant_par_mois
-    # End Test
+    # Fin
 
     @property
     def date_echeance(self):
@@ -252,11 +262,13 @@ class Facture(models.Model):
         return cls.objects.filter(date_facture__range=[debut_periode, fin_periode], active=True)
 
 
+# Table Mouvement
 class Mouvement(models.Model):
     auteur = models.ForeignKey(User, on_delete=models.PROTECT)
     facture = models.ForeignKey(Facture, on_delete=models.PROTECT, null=True)
     produit = models.ForeignKey(Produit, on_delete=models.PROTECT)
     qte = models.FloatField()
+    # type d'operation : ADD = entree, OUT = sortie
     type_op = models.CharField(max_length=5, blank=False, null=False)
 
     active = models.BooleanField(default=True)
@@ -266,13 +278,15 @@ class Mouvement(models.Model):
     def __str__(self):
         return f"{self.facture}-{self.produit}"
 
+    # Fonction pour faire le sous-total (montant hors taxe) facture sans la remise et la tva
     def sous_total(self):
         return self.produit.pv * self.qte
 
 
+# Table Historique
 class Historique(models.Model):
     auteur = models.ForeignKey(User, on_delete=models.PROTECT)
-    action = models.CharField(max_length=30, blank=False, null=False)
+    action = models.CharField(max_length=90, blank=False, null=False)
     table = models.CharField(max_length=80, blank=False, null=False)
     contenu = models.TextField(blank=False, null=False)
 
@@ -286,6 +300,7 @@ class Historique(models.Model):
         verbose_name_plural = "GESTION DES HISTORIQUES"
 
 
+# Table Payement
 class Payement(models.Model):
     auteur = models.ForeignKey(User, on_delete=models.PROTECT)
     code_payement = models.CharField(max_length=100, unique=True)
@@ -327,5 +342,3 @@ class Payement(models.Model):
 
     class Meta:
         verbose_name_plural = "GESTION DES PAYEMENTS"
-
-

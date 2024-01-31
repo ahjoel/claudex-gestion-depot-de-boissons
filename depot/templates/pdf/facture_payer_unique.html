@@ -168,6 +168,17 @@
                     </tr>
                 </table>
 
+                <br>
+            <table>
+                <strong>Récap Facture :</strong>
+                 <tbody>
+                    {% for type_produit, count in recap_types_facture.items %}
+                    <tr>
+                        <td>{{type_produit}} - {{count|floatformat:1}} U </td>
+                    </tr>
+                    {% endfor %}
+                 </tbody>
+            </table>
 
 
 

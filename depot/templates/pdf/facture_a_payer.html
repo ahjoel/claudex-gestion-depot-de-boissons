@@ -142,6 +142,7 @@
                 <tr>
                     <td style="width: 150px;"><strong>MONTANT HT :</strong></td>
                     <td style="width: 150px;">{{montant_ht|intcomma}}</td>
+
                 </tr>
                 <tr>
                     <td style="width: 150px;"><strong>TAUX TVA :</strong></td>
@@ -159,6 +160,17 @@
                     <td style="width: 150px;"><strong>MONTANT TTC :</strong></td>
                     <td style="padding: 1px;">{{montant_total|intcomma}}</td>
                 </tr>
+            </table>
+            <br>
+           <table>
+                <strong>Récap Facture :</strong>
+                 <tbody>
+                    {% for type_produit, count in recap_types_facture.items %}
+                    <tr>
+                        <td>{{type_produit}} - {{count|floatformat:1}} U </td>
+                    </tr>
+                    {% endfor %}
+                 </tbody>
             </table>
              <div class="footerr">
                     <p>ARRÊTEE LA PRESENTE FACTURE A LA SOMME DE : {{montant_total_lettre|upper}} FRANC(S) CFA</p>
@@ -237,6 +249,17 @@
                     <td style="width: 150px;"><strong>MONTANT TTC :</strong></td>
                     <td style="padding: 1px;">{{montant_total|intcomma}}</td>
                 </tr>
+            </table>
+            <br>
+            <table>
+                <strong>Récap Facture :</strong>
+                 <tbody>
+                    {% for type_produit, count in recap_types_facture.items %}
+                    <tr>
+                        <td>{{type_produit}} - {{count|floatformat:1}} U </td>
+                    </tr>
+                    {% endfor %}
+                 </tbody>
             </table>
              <div class="footerr">
                     <p>ARRÊTEE LA PRESENTE FACTURE A LA SOMME DE : {{montant_total_lettre|upper}} FRANC(S) CFA</p>
