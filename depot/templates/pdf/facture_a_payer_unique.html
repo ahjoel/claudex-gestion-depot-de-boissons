@@ -95,13 +95,13 @@
 
         <div class="invoice-details">
             <div class="left">
-                <p><strong>From:</strong> CLAUDEX</p>
-                <p>Facturation : {{facturateur}}</p>
+                <span><strong>From:</strong> CLAUDEX</span><br>
+                <span>Facturation : {{facturateur}}</span>
             </div>
             <div class="right">
-                <p><strong>To:</strong> Client : {{facture.client}}</p>
-                <p>Facture N° {{facture.code_facture}}</p>
-                <p>Date: {{facture.date_facture}}</p>
+                <span><strong>To:</strong> Client : {{facture.client}}</span><br>
+                <span>Facture N° {{facture.code_facture}}</span><br>
+                <span>Date: {{facture.date_facture}}</span>
             </div>
         </div>
 
@@ -155,12 +155,12 @@
     </tr>
 </table>
 <br>
-<table>
+<table style="font-size: 9px">
 <strong>Récap Facture :</strong>
  <tbody>
     {% for type_produit, count in recap_types_facture.items %}
     <tr>
-        <td>{{type_produit}} - {{count|floatformat:1}} U </td>
+        <td>{{type_produit}} - {{count|floatformat:2}} U </td>
     </tr>
     {% endfor %}
  </tbody>
