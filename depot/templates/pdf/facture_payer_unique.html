@@ -92,14 +92,14 @@
         </div>
 
         <div class="invoice-details">
-            <div class="left">
-                <p><strong>From:</strong> CLAUDEX</p>
-                <p>Facturation : {{facturateur}}</p>
+           <div class="left">
+                <span><strong>From:</strong> CLAUDEX</span><br>
+                <span>Facturation : {{facturateur}}</span>
             </div>
-            <div class="right" style="height: 25px">
-                <p><strong>To:</strong> Client : {{facture.client}}</p>
-                <p>Facture N° {{facture.code_facture}}</p>
-                <p>Date Facture: {{facture.date_facture}}</p>
+            <div class="right">
+                <span><strong>To:</strong> Client : {{facture.client}}</span><br>
+                <span>Facture N° {{facture.code_facture}}</span><br>
+                <span>Date: {{facture.date_facture}}</span>
             </div>
         </div>
 
@@ -137,7 +137,7 @@
                 <table style="float: right">
                     <tr>
                         <td style="width: 150px;"><strong>MONTANT HT :</strong></td>
-                        <td style="width: 120px;">{{montant_ht|intcomma}}</td>
+                        <td style="padding: 1px;">{{montant_ht|intcomma}}</td>
                         <td style="width: 50px;"><strong>REGLEMENT</strong></td>
                         <td style=""><strong>M. PAYEMENT.</strong> : ESPECE</td>
                         <td style="width: 160px;"><strong>Date Ech.</strong> : {{date_echeance}}</td>
@@ -158,7 +158,7 @@
                     </tr>
                     <tr>
                         <td style="width: 150px;"><strong>REMISE :</strong></td>
-                        <td style="">{{remise|intcomma}}</td>
+                        <td style="padding: 1px;">{{remise|intcomma}}</td>
                         <td style="width: 100px;"></td>
                         <td style=""><strong>Ancien reste à Payer :</strong> {{facture.client.montant_factures_impayees|intcomma}}</td>
                     </tr>
@@ -169,12 +169,12 @@
                 </table>
 
                 <br>
-            <table>
+            <table style="font-size: 9px">
                 <strong>Récap Facture :</strong>
                  <tbody>
                     {% for type_produit, count in recap_types_facture.items %}
                     <tr>
-                        <td>{{type_produit}} - {{count|floatformat:1}} U </td>
+                        <td>{{type_produit}} - {{count|floatformat:2}} U </td>
                     </tr>
                     {% endfor %}
                  </tbody>

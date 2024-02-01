@@ -39,12 +39,12 @@
         }
 
         .invoice-details .left {
-            max-width: 20%;
+
         }
 
         .invoice-details .right {
             text-align: right;
-            max-width: 20%;
+
         }
 
         .invoice-items {
@@ -101,13 +101,13 @@
 
         <div class="invoice-details">
             <div class="left">
-                <p><strong>From:</strong> CLAUDEX</p>
-                <p>Facturation : {{facturateur}}</p>
+                <span><strong>From:</strong> CLAUDEX</span><br>
+                <span>Facturation : {{facturateur}}</span>
             </div>
             <div class="right">
-                <p><strong>To:</strong> Client : {{facture.client}}</p>
-                <p>Facture N° {{facture.code_facture}}</p>
-                <p>Date: {{facture.date_facture}}</p>
+                <span><strong>To:</strong> Client : {{facture.client}}</span><br>
+                <span>Facture N° {{facture.code_facture}}</span><br>
+                <span>Date: {{facture.date_facture}}</span>
             </div>
         </div>
 
@@ -141,7 +141,7 @@
              <table style="float: right; width: 150px;">
                 <tr>
                     <td style="width: 150px;"><strong>MONTANT HT :</strong></td>
-                    <td style="width: 150px;">{{montant_ht|intcomma}}</td>
+                    <td style="padding: 1px;">{{montant_ht|intcomma}}</td>
 
                 </tr>
                 <tr>
@@ -154,7 +154,7 @@
                 </tr>
                 <tr>
                     <td style="width: 150px;"><strong>REMISE :</strong></td>
-                    <td style="">{{remise|intcomma}}</td>
+                    <td style="padding: 1px;">{{remise|intcomma}}</td>
                 </tr>
                 <tr>
                     <td style="width: 150px;"><strong>MONTANT TTC :</strong></td>
@@ -162,18 +162,18 @@
                 </tr>
             </table>
             <br>
-           <table>
+           <table style="font-size: 9px">
                 <strong>Récap Facture :</strong>
                  <tbody>
                     {% for type_produit, count in recap_types_facture.items %}
                     <tr>
-                        <td>{{type_produit}} - {{count|floatformat:1}} U </td>
+                        <td>{{type_produit}} - {{count|floatformat:2}} U </td>
                     </tr>
                     {% endfor %}
                  </tbody>
             </table>
              <div class="footerr">
-                    <p>ARRÊTEE LA PRESENTE FACTURE A LA SOMME DE : {{montant_total_lettre|upper}} FRANC(S) CFA</p>
+                    <p><em>ARRÊTEE LA PRESENTE FACTURE A LA SOMME DE : {{montant_total_lettre|upper}} FRANC(S) CFA</em></p>
                 </div>
 
             <div class="bot">
@@ -191,13 +191,13 @@
 
         <div class="invoice-details">
             <div class="left">
-                <p><strong>From:</strong> CLAUDEX</p>
-                <p>Facturation : {{facturateur}}</p>
+                <span><strong>From:</strong> CLAUDEX</span><br>
+                <span>Facturation : {{facturateur}}</span>
             </div>
             <div class="right">
-                <p><strong>To:</strong> Client : {{facture.client}}</p>
-                <p>Facture N° {{facture.code_facture}}</p>
-                <p>Date: {{facture.date_facture}}</p>
+                <span><strong>To:</strong> Client : {{facture.client}}</span><br>
+                <span>Facture N° {{facture.code_facture}}</span><br>
+                <span>Date: {{facture.date_facture}}</span>
             </div>
         </div>
 
@@ -231,7 +231,7 @@
              <table style="float: right; width: 150px;">
                 <tr>
                     <td style="width: 150px;"><strong>MONTANT HT :</strong></td>
-                    <td style="width: 150px;">{{montant_ht|intcomma}}</td>
+                    <td style="padding: 1px;">{{montant_ht|intcomma}}</td>
                 </tr>
                 <tr>
                     <td style="width: 150px;"><strong>TAUX TVA :</strong></td>
@@ -243,7 +243,7 @@
                 </tr>
                 <tr>
                     <td style="width: 150px;"><strong>REMISE :</strong></td>
-                    <td style="">{{remise|intcomma}}</td>
+                    <td style="padding: 1px;">{{remise|intcomma}}</td>
                 </tr>
                 <tr>
                     <td style="width: 150px;"><strong>MONTANT TTC :</strong></td>
@@ -251,18 +251,18 @@
                 </tr>
             </table>
             <br>
-            <table>
+            <table style="font-size: 9px">
                 <strong>Récap Facture :</strong>
                  <tbody>
                     {% for type_produit, count in recap_types_facture.items %}
                     <tr>
-                        <td>{{type_produit}} - {{count|floatformat:1}} U </td>
+                        <td>{{type_produit}} - {{count|floatformat:2}} U </td>
                     </tr>
                     {% endfor %}
                  </tbody>
             </table>
              <div class="footerr">
-                    <p>ARRÊTEE LA PRESENTE FACTURE A LA SOMME DE : {{montant_total_lettre|upper}} FRANC(S) CFA</p>
+                    <p><em>ARRÊTEE LA PRESENTE FACTURE A LA SOMME DE : {{montant_total_lettre|upper}} FRANC(S) CFA</em></p>
                 </div>
 
             <div class="bot">
