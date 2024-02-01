@@ -116,9 +116,9 @@
                           <td>{{ resultat.produit.code }}</td>
                           <td>{{ resultat.produit.libelle }}</td>
                           <td>{{ resultat.produit.modelb.libelle }}</td>
-                          <td>{{ resultat.somme_quantite_entree|floatformat:1|intcomma  }}</td>
-                          <td>{{ resultat.somme_quantite_sortie|floatformat:1|intcomma  }}</td>
-                          <td>{{ resultat.reste|floatformat:1|intcomma }}</td>
+                          <td>{{ resultat.somme_quantite_entree|floatformat:2|intcomma  }}</td>
+                          <td>{{ resultat.somme_quantite_sortie|floatformat:2|intcomma  }}</td>
+                          <td>{{ resultat.reste|floatformat:2|intcomma }}</td>
                           <td>{{ resultat.produit.seuil|floatformat:1|intcomma }}</td>
                     </tr>
                     {% endfor %}
