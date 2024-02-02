@@ -117,7 +117,7 @@ def home(request):
     nombre_total_produits_en_seuil = len(produits_en_seuil)
 
     # Filtrer les encaissements en fonction de la date de paiement à ce jour
-    encaissements_a_ce_jour = Payement.objects.filter(date_payement__lte=aujourd_hui, active=True)
+    encaissements_a_ce_jour = Payement.objects.filter(date_payement=aujourd_hui, active=True)
 
     # Calculer le montant total encaissé à ce jour
     montant_total_encaisse_a_ce_jour = encaissements_a_ce_jour.aggregate(Sum('mt_encaisse'))['mt_encaisse__sum'] or 0
