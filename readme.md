@@ -3,6 +3,13 @@
 
 # Fonctionnalités
 
+# 
+<img width="100%"
+      alt="Founitures"
+      src="https://raw.githubusercontent.com/ahjoel/claudex-gestion-depot-de-boissons/developp/depot/static/depot/accueil.jpeg"
+    />
+
+    
 CLAUDEX est un logiciel de gestion du stock des dépots de boissons et dispose des fonctionnalités pour la gestion des ventes aux bars et la production des états. Son usage dans ce cadre est destiné à être installé sur le réseau local d'une entreprise spécifique. Il est conçu pour :
 
 - éviter le surstockage des fournitures au stock
