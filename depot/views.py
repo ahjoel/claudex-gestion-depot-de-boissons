@@ -694,12 +694,12 @@ def create_sortie(request):
         nouveau_client = request.POST['nouveau_client']
         nouveau_client_code = request.POST['nouveau_client_code']
         # Cas de nouveau client - Fin
-        remise = request.POST['remise']
-        tva = request.POST['tva']
+        remise = int(request.POST['remise'])
+        tva = int(request.POST['tva'])
         pdt = request.POST.getlist('pdtIds[]')
         qte = request.POST.getlist('qte[]')
-        mt_ht = request.POST['mt_ht']
-        ttc = mt_ht + tva + remise
+        mt_ht = int(request.POST['mt_ht'])
+        ttc = int(mt_ht - remise)
 
         if pdt:
             if qte:
